@@ -1,0 +1,3053 @@
+---
+title: "Capital Bikeshare Rebalancing Decision Support"
+subtitle: "Interactive Dashboard for Dynamic Simulation and Linear Optimization"
+output-file: "capital_bikeshare_app.html"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-title: "Contents"
+    toc-depth: 3
+    code-fold: true
+    code-summary: "Show code"
+    code-tools: true
+    fig-align: center
+    page-layout: full
+    embed-resources: true
+    html-table-processing: none
+jupyter: bikeshare
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+  error: false
+---
+
+```{=html}
+<style>
+:root{--cb-ink:#172337;--cb-sub:#64748b;--cb-bg:#f3f6fa;--cb-border:#e1e7ee;--cb-accent:#ce3c38;--cb-navy:#284766;--cb-blue:#2563a6;--cb-teal:#1c958e;--cb-amber:#e5a137}
+body{background:var(--cb-bg)!important;color:var(--cb-ink)}
+#title-block-header{display:none!important}
+main.content{max-width:none!important;padding-top:1rem!important}
+#cb-app{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;max-width:1550px;margin:0 auto;padding:0 12px 50px}
+#cb-app *{box-sizing:border-box}
+.cb-top{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:16px}
+.cb-eyebrow{color:var(--cb-accent);font-size:11px;letter-spacing:.16em;font-weight:800;text-transform:uppercase;margin-bottom:6px}
+.cb-title{font-size:clamp(24px,3vw,37px);font-weight:790;letter-spacing:-.047em;line-height:1.15;margin:0!important}
+.cb-subtitle{font-size:13px;color:var(--cb-sub);margin:9px 0 0!important}
+.cb-top-right{font-size:12px;color:var(--cb-sub);text-align:right;line-height:1.6;white-space:nowrap}
+.cb-panel{background:#fff;border:1px solid var(--cb-border);border-radius:14px;box-shadow:0 1px 2px rgba(17,32,51,.025)}
+.cb-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.cb-stat{padding:13px 17px;min-height:84px}
+.cb-stat .label{font-size:11px;letter-spacing:.04em;font-weight:750;text-transform:uppercase;color:#718096}
+.cb-stat .value{font-variant-numeric:tabular-nums;font-size:26px;letter-spacing:-.035em;font-weight:780;margin-top:4px}
+.cb-stat .hint{color:#8090a0;font-size:11px;margin-top:1px}
+.cb-workspace{display:grid;grid-template-columns:294px minmax(0,1fr);gap:13px;align-items:stretch}
+.cb-sidebar{padding:18px;display:flex;flex-direction:column;gap:16px}
+.cb-map-area{padding:13px;min-width:0}
+.cb-panel-title{font-size:15px;font-weight:770;margin:0!important;letter-spacing:-.015em}
+.cb-panel-caption{font-size:11px;color:var(--cb-sub);margin-top:5px}
+.cb-group{display:flex;flex-direction:column;gap:8px}
+.cb-control-label{font-size:11px;font-weight:800;letter-spacing:.075em;color:#53677e;text-transform:uppercase}
+.cb-select,.cb-search{width:100%;border:1px solid #ccd7e3;border-radius:8px;background:white;font-size:13px;color:var(--cb-ink);padding:9px 10px;min-height:38px}
+.cb-select:focus,.cb-search:focus{outline:2px solid #a4c8ed;outline-offset:1px}
+.cb-policy{display:grid;gap:6px}
+.cb-policy label{display:block;cursor:pointer}
+.cb-policy input{position:absolute;opacity:0;width:0;height:0}
+.cb-policy span{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #d9e1eb;border-radius:8px;color:#52647b;font-size:12px;font-weight:680;transition:background .13s}
+.cb-policy input:checked+span{border-color:#b7cadf;background:#edf4fb;color:#183b60}
+.cb-policy input:focus-visible+span{outline:2px solid #669fd7;outline-offset:2px}
+.cb-policy i{display:inline-block;width:8px;height:8px;border-radius:99px;flex:none}
+.cb-check-line{display:flex;gap:8px;align-items:center;color:#53677e;font-size:12px;cursor:pointer}
+.cb-check-line input{accent-color:#2f638e}
+.cb-button{border:1px solid #cfdae4;background:#fff;border-radius:8px;padding:8px 11px;cursor:pointer;font-size:12px;color:#284a68;font-weight:650}
+.cb-button:hover{background:#f3f7fb}
+.cb-button:focus-visible{outline:2px solid #6299cf;outline-offset:2px}
+.cb-button.primary{background:#274d73;border-color:#274d73;color:#fff}
+.cb-button.primary:hover{background:#183d62}
+.cb-button-row{display:flex;flex-wrap:wrap;gap:6px}
+.cb-zip-head{display:flex;align-items:center;justify-content:space-between}
+.cb-zip-count{font-size:11px;color:var(--cb-sub)}
+.cb-zip-tools{display:flex;justify-content:space-between;gap:8px}
+.cb-zip-items{display:grid;grid-template-columns:1fr 1fr;max-height:174px;overflow-y:auto;gap:4px 7px;padding:7px;border:1px solid #dde5ed;border-radius:8px;background:#fbfdff}
+.cb-zip-item{display:flex;align-items:center;gap:4px;padding:3px 2px;font-size:11px;cursor:pointer}
+.cb-zip-item input{accent-color:#2c648f;width:13px;height:13px;margin:0}
+.cb-map-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:2px 4px 11px}
+.cb-map-actions{display:flex;gap:6px;align-items:center}
+#cb-map{width:100%;height:570px;background:#eaf0f4;border:1px solid #d7e2eb;border-radius:10px;overflow:hidden;position:relative}
+.cb-map-fallback{padding:35px;color:#60748c;display:flex;align-items:center;justify-content:center;height:100%;text-align:center}
+.cb-map-foot{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap;font-size:11px;color:var(--cb-sub);padding:10px 4px 0}
+.cb-legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.cb-legend-item{display:inline-flex;gap:5px;align-items:center;font-size:10px}
+.cb-legend-item i{width:9px;height:9px;display:inline-block;border-radius:50%}
+.cb-section-head{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:13px}
+.cb-section-head small{font-size:11px;color:var(--cb-sub)}
+.cb-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-top:14px}
+.cb-kpi{padding:15px 16px;min-height:89px}
+.cb-kpi .label{font-size:11px;color:#69798b;font-weight:750}
+.cb-kpi .value{font-size:23px;font-weight:770;font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin:8px 0 0}
+.cb-kpi .hint{font-size:10px;color:#8a98a8}
+.cb-split{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:14px}
+.cb-detail-panel{padding:18px;min-width:0}
+.cb-policy-row{display:grid;grid-template-columns:116px minmax(0,1fr) 46px;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f1f3f6}
+.cb-policy-row:last-child{border-bottom:0}
+.cb-policy-name{font-size:12px;color:#4c6075;font-weight:700}
+.cb-policy-bar-track{width:100%;height:15px;background:#f2f5f8;border-radius:4px;display:flex;overflow:hidden}
+.cb-policy-bar-track div{height:100%;transition:width .15s}
+.cb-policy-num{text-align:right;font-size:12px;font-weight:750;font-variant-numeric:tabular-nums}
+.cb-mini-note{font-size:11px;color:#718195;line-height:1.55;margin-top:12px}
+.cb-key{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
+.cb-chart-outer{min-width:0;overflow-x:auto;padding-top:6px}
+.cb-trend{display:flex;align-items:end;min-height:195px;gap:12px;justify-content:space-around;border-bottom:1px solid #e0e7ee;padding:0 9px 20px}
+.cb-time-group{flex:1;min-width:78px;max-width:180px;display:flex;align-items:end;gap:5px;justify-content:center;height:160px;position:relative;cursor:pointer;padding:6px;border-radius:6px}
+.cb-time-group.selected{background:#f0f6fc}
+.cb-time-bar{width:24%;max-width:31px;min-height:2px;border-radius:3px 3px 0 0;transition:height .15s}
+.cb-time-label{position:absolute;bottom:-19px;left:0;right:0;text-align:center;font-size:11px;color:#6d7b8a;white-space:nowrap}
+.cb-table-scroll{overflow-x:auto}
+.cb-table{width:100%;border-collapse:collapse;font-size:12px}
+.cb-table th{color:#738194;letter-spacing:.025em;font-size:10px;text-transform:uppercase;text-align:left;border-bottom:1px solid #dce4ec;padding:10px 7px;white-space:nowrap}
+.cb-table td{padding:10px 7px;border-bottom:1px solid #edf1f5;color:#354b60;vertical-align:top}
+.cb-table tbody tr:last-child td{border-bottom:0}
+.cb-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.cb-table .station-name{font-weight:690;min-width:130px}
+.cb-muted{color:#91a0af}
+.cb-empty{padding:20px;color:#8291a2;font-size:12px;text-align:center}
+.cb-budget-plot{width:100%;height:252px;display:block}
+.cb-budget-plot line{stroke:#d6dee7;stroke-width:1}
+.cb-budget-plot text{font-size:11px;fill:#718195}
+.cb-budget-plot polyline{stroke:var(--cb-blue);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.cb-budget-plot circle{fill:var(--cb-accent);stroke:#fff;stroke-width:2}
+.cb-bottom{margin-top:16px;display:flex;justify-content:space-between;gap:18px;align-items:start;font-size:11px;color:#7a8999}
+.cb-bottom strong{color:#5f7184}
+#cb-app .leaflet-popup-content{font-family:inherit;font-size:12px;line-height:1.6;margin:11px 14px}
+#cb-app .leaflet-popup-content b{font-weight:760}
+#cb-app .leaflet-container{font:inherit}
+@media(max-width:1170px){.cb-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cb-split{grid-template-columns:1fr}}
+@media(max-width:850px){.cb-workspace{grid-template-columns:1fr}.cb-sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.cb-sidebar .cb-sidebar-head{grid-column:1/-1}#cb-map{height:460px}}
+@media(max-width:580px){#cb-app{padding:0 4px 35px}.cb-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.cb-top{align-items:start;flex-direction:column;gap:5px}.cb-top-right{text-align:left}.cb-sidebar{grid-template-columns:1fr}.cb-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#cb-map{height:395px}.cb-policy-row{grid-template-columns:93px minmax(0,1fr) 35px;gap:5px}.cb-policy-name{font-size:11px}}
+
+/* Compact map workspace: keep the existing KPIs directly below the map. */
+#cb-app .cb-map-column {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  min-width: 0;
+  gap: 14px;
+}
+#cb-app .cb-map-column > .cb-map-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+#cb-app .cb-map-column .cb-map-header,
+#cb-app .cb-map-column .cb-map-foot {
+  flex: 0 0 auto;
+}
+#cb-app .cb-map-column #cb-map {
+  flex: 1 1 auto;
+  height: 570px;
+  min-height: 420px;
+}
+#cb-app .cb-map-column > .cb-kpi-grid {
+  flex: 0 0 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  gap: 10px;
+}
+#cb-app .cb-map-column .cb-kpi {
+  padding: 12px 14px;
+  min-height: 92px;
+}
+@media (min-width: 851px) and (max-width: 1150px) {
+  #cb-app .cb-map-column > .cb-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #cb-app .cb-map-column #cb-map {
+    height: 460px;
+  }
+}
+@media (max-width: 850px) {
+  #cb-app .cb-map-column > .cb-map-area {
+    flex: 0 0 auto;
+  }
+  #cb-app .cb-map-column #cb-map {
+    flex: none;
+    height: 460px;
+    min-height: 0;
+  }
+}
+@media (max-width: 650px) {
+  #cb-app .cb-map-column > .cb-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 580px) {
+  #cb-app .cb-map-column #cb-map {
+    height: 395px;
+  }
+}
+</style>
+```
+
+```{python}
+#| label: full-day-model
+#| include: false
+import numpy as np
+import pandas as pd
+
+
+def run_report_model(simulation_station_table, simulation_flows_60, budget_grid=(),
+                     initial_inventory_input=None):
+    """Run the original hourly model for the supplied complete station-time panel."""
+    # Use the saved per-station integer allocation, not a new allocation of
+    # tied fractional remainders. The same vector is used for all policies
+    # and for the heuristic's original 50% target. It is an assumed initial
+    # condition at midnight for the NEW full-day scenario, not an observation.
+    frozen_initial = None
+    if initial_inventory_input is not None:
+        frozen_initial = initial_inventory_input.copy()
+        frozen_initial.index = frozen_initial.index.astype(str)
+        if frozen_initial.index.has_duplicates:
+            raise ValueError("Duplicate station IDs in the saved initial inventory.")
+        station_keys = simulation_station_table['short_name'].astype(str)
+        frozen_initial = pd.to_numeric(frozen_initial.reindex(station_keys), errors='raise')
+        caps = simulation_station_table.set_index('short_name')['capacity'].reindex(station_keys)
+        if not np.isfinite(frozen_initial.to_numpy(dtype=float)).all():
+            raise ValueError("Saved initial inventory is missing for a modeled station.")
+        if ((frozen_initial < 0) | (frozen_initial > caps)).any():
+            raise ValueError("Saved initial inventory is outside station capacity.")
+        if not np.allclose(frozen_initial, np.round(frozen_initial), rtol=0, atol=1e-8):
+            raise ValueError("The baseline/heuristic initial allocation must be integer-valued.")
+        frozen_initial = frozen_initial.round().astype(int)
+
+    # Original report cell cb114
+    def make_initial_inventory(capacity, fill_ratio):
+        capacity = capacity.astype(int).copy()
+        if frozen_initial is not None and np.isclose(fill_ratio, 0.5, rtol=0, atol=1e-12):
+            # This also freezes the threshold heuristic's half-capacity target.
+            return frozen_initial.reindex(capacity.index).astype(int).copy()
+        raw_inventory = fill_ratio * capacity
+        initial_inventory = np.floor(raw_inventory).astype(int)
+        target_total = int(round(raw_inventory.sum()))
+        remainder = target_total - initial_inventory.sum()
+        if remainder > 0:
+            fractional_part = raw_inventory - initial_inventory
+            add_one = fractional_part.sort_values(ascending=False).head(remainder).index
+            initial_inventory.loc[add_one] += 1
+        return initial_inventory
+
+    # Original report cell cb115
+    capacity_series = simulation_station_table.set_index('short_name')['capacity']
+    baseline_fill_ratio = 0.5
+    baseline_initial_inventory = make_initial_inventory(capacity_series, baseline_fill_ratio)
+    initial_state = simulation_station_table[['short_name', 'station_name', 'capacity']].copy()
+    initial_state['initial_inventory'] = initial_state['short_name'].map(baseline_initial_inventory)
+    initial_state['initial_fill_ratio'] = initial_state['initial_inventory'] / initial_state['capacity']
+
+    # Original report cell cb122
+    def greedy_threshold_rebalance(inventory, capacity, bike_budget, low_threshold=0.25, high_threshold=0.75, target_fill=0.5):
+        inventory = inventory.copy().astype(int)
+        capacity = capacity.copy().astype(int)
+        fill_ratio = inventory / capacity
+        target_inventory = make_initial_inventory(capacity, target_fill)
+        donor_supply = (inventory - target_inventory).clip(lower=0)
+        receiver_need = (target_inventory - inventory).clip(lower=0)
+        donor_supply = donor_supply.loc[(fill_ratio >= high_threshold) & (donor_supply > 0)].sort_values(ascending=False)
+        receiver_need = receiver_need.loc[(fill_ratio <= low_threshold) & (receiver_need > 0)].sort_values(ascending=False)
+        delta = pd.Series(0, index=inventory.index, dtype=int)
+        transfers = []
+        remaining_budget = int(bike_budget)
+        for receiver in receiver_need.index:
+            need = int(receiver_need.loc[receiver])
+            if need <= 0 or remaining_budget <= 0:
+                continue
+            for donor in donor_supply.index:
+                available = int(donor_supply.loc[donor])
+                if available <= 0:
+                    continue
+                moved = min(need, available, remaining_budget)
+                if moved <= 0:
+                    continue
+                delta.loc[donor] -= moved
+                delta.loc[receiver] += moved
+                donor_supply.loc[donor] -= moved
+                need -= moved
+                remaining_budget -= moved
+                transfers.append({'from_short_name': donor, 'to_short_name': receiver, 'bikes': moved})
+                if need <= 0 or remaining_budget <= 0:
+                    break
+            if remaining_budget <= 0:
+                break
+        if delta.sum() != 0:
+            raise ValueError('Heuristic rebalancing does not conserve bikes.')
+        return (delta, transfers)
+
+    # Original report cell cb123
+    def simulate_inventory(flow_table, step_minutes, initial_fill_ratio=0.5, policy='none', rebalancing_budget=0):
+        station_table = simulation_station_table.set_index('short_name')
+        station_ids = station_table.index.tolist()
+        capacity = station_table['capacity'].astype(int)
+        inventory = make_initial_inventory(capacity, initial_fill_ratio)
+        simulation_records = []
+        transfer_records = []
+        dt_hours = step_minutes / 60
+        for time, block in flow_table.groupby('time', sort=True):
+            block = block.set_index('short_name').reindex(station_ids)
+            start_inventory = inventory.copy()
+            rebalance_delta = pd.Series(0, index=station_ids, dtype=int)
+            if policy == 'heuristic':
+                rebalance_delta, transfers = greedy_threshold_rebalance(inventory=inventory, capacity=capacity, bike_budget=rebalancing_budget)
+                for transfer in transfers:
+                    transfer['time'] = time
+                    transfer_records.append(transfer)
+            inventory_after_rebalancing = inventory + rebalance_delta
+            if (inventory_after_rebalancing < 0).any() or (inventory_after_rebalancing > capacity).any():
+                raise ValueError('Rebalancing produced an infeasible inventory.')
+            requested_departures = block['departures'].fillna(0).astype(int)
+            requested_arrivals = block['arrivals'].fillna(0).astype(int)
+            arrival_rate = requested_arrivals / dt_hours
+            departure_rate = requested_departures / dt_hours
+            unconstrained_end_inventory = inventory_after_rebalancing + dt_hours * (arrival_rate - departure_rate)
+            served_departures = pd.Series(np.minimum(requested_departures, inventory_after_rebalancing), index=station_ids, dtype=int)
+            unmet_departures = requested_departures - served_departures
+            inventory_after_departures = inventory_after_rebalancing - served_departures
+            available_docks = capacity - inventory_after_departures
+            accepted_arrivals = pd.Series(np.minimum(requested_arrivals, available_docks), index=station_ids, dtype=int)
+            blocked_arrivals = requested_arrivals - accepted_arrivals
+            end_inventory = inventory_after_departures + accepted_arrivals
+            if (end_inventory < 0).any() or (end_inventory > capacity).any():
+                raise ValueError('Simulation produced inventory outside station capacity.')
+            step_result = pd.DataFrame({'time': time, 'time_end': time + pd.Timedelta(minutes=step_minutes), 'short_name': station_ids, 'station_name': station_table.loc[station_ids, 'station_name'].to_numpy(), 'capacity': capacity.loc[station_ids].to_numpy(), 'start_inventory': start_inventory.loc[station_ids].to_numpy(), 'rebalance_delta': rebalance_delta.loc[station_ids].to_numpy(), 'inventory_after_rebalancing': inventory_after_rebalancing.loc[station_ids].to_numpy(), 'requested_departures': requested_departures.loc[station_ids].to_numpy(), 'served_departures': served_departures.loc[station_ids].to_numpy(), 'unmet_departures': unmet_departures.loc[station_ids].to_numpy(), 'requested_arrivals': requested_arrivals.loc[station_ids].to_numpy(), 'accepted_arrivals': accepted_arrivals.loc[station_ids].to_numpy(), 'blocked_arrivals': blocked_arrivals.loc[station_ids].to_numpy(), 'unconstrained_end_inventory': unconstrained_end_inventory.loc[station_ids].to_numpy(), 'end_inventory': end_inventory.loc[station_ids].to_numpy()})
+            step_result['end_fill_ratio'] = step_result['end_inventory'] / step_result['capacity']
+            simulation_records.append(step_result)
+            inventory = end_inventory.copy()
+        simulation_result = pd.concat(simulation_records, ignore_index=True)
+        transfers_result = pd.DataFrame(transfer_records, columns=['time', 'from_short_name', 'to_short_name', 'bikes'])
+        return (simulation_result, transfers_result)
+
+    # Original report cell cb124
+    baseline_simulation, baseline_transfers = simulate_inventory(flow_table=simulation_flows_60, step_minutes=60, initial_fill_ratio=baseline_fill_ratio, policy='none')
+
+    # Original report cell cb126
+    total_simulation_capacity = simulation_station_table['capacity'].sum()
+    heuristic_budget_per_hour = max(1, int(round(0.01 * total_simulation_capacity)))
+
+    # Original report cell cb128
+    heuristic_simulation, heuristic_transfers = simulate_inventory(flow_table=simulation_flows_60, step_minutes=60, initial_fill_ratio=baseline_fill_ratio, policy='heuristic', rebalancing_budget=heuristic_budget_per_hour)
+
+    # Original report cell cb129
+    def summarize_simulation(simulation, transfers, policy_name):
+        requested_departures = simulation['requested_departures'].sum()
+        requested_arrivals = simulation['requested_arrivals'].sum()
+        served_departures = simulation['served_departures'].sum()
+        accepted_arrivals = simulation['accepted_arrivals'].sum()
+        unmet_departures = simulation['unmet_departures'].sum()
+        blocked_arrivals = simulation['blocked_arrivals'].sum()
+        requested_events = requested_departures + requested_arrivals
+        served_events = served_departures + accepted_arrivals
+        bikes_rebalanced = transfers['bikes'].sum() if len(transfers) > 0 else 0
+        empty_station_intervals = simulation['end_inventory'].eq(0).sum()
+        full_station_intervals = simulation['end_inventory'].eq(simulation['capacity']).sum()
+        stations_ever_empty = simulation.loc[simulation['end_inventory'] == 0, 'short_name'].nunique()
+        stations_ever_full = simulation.loc[simulation['end_inventory'] == simulation['capacity'], 'short_name'].nunique()
+        return {'Policy': policy_name, 'Requested departures': requested_departures, 'Served departures': served_departures, 'Unmet departures': unmet_departures, 'Requested arrivals': requested_arrivals, 'Accepted arrivals': accepted_arrivals, 'Blocked arrivals': blocked_arrivals, 'Total service failures': unmet_departures + blocked_arrivals, 'Service success rate': served_events / requested_events if requested_events > 0 else np.nan, 'Stations ever empty': stations_ever_empty, 'Stations ever full': stations_ever_full, 'Empty station-intervals': empty_station_intervals, 'Full station-intervals': full_station_intervals, 'Bikes rebalanced': bikes_rebalanced}
+
+    # Original report cell cb130
+    policy_kpis = pd.DataFrame([summarize_simulation(baseline_simulation, baseline_transfers, 'No rebalancing'), summarize_simulation(heuristic_simulation, heuristic_transfers, 'Reactive heuristic')])
+    baseline_failures = int(policy_kpis.loc[policy_kpis['Policy'] == 'No rebalancing', 'Total service failures'].iloc[0])
+    policy_kpis['Service improvement vs baseline'] = baseline_failures - policy_kpis['Total service failures']
+
+    # Original report cell cb146
+    from scipy.optimize import linprog
+    from scipy.sparse import coo_matrix
+
+    # Original report cell cb147
+    optimization_station_table = simulation_station_table.sort_values('short_name').reset_index(drop=True).copy()
+    station_ids = optimization_station_table['short_name'].tolist()
+    station_count = len(optimization_station_table)
+    station_index = {station_id: i for i, station_id in enumerate(station_ids)}
+
+    # Original report cell cb148
+    def haversine_distance_matrix(latitudes, longitudes):
+        earth_radius_km = 6371.0088
+        lat = np.radians(np.asarray(latitudes, dtype=float))
+        lon = np.radians(np.asarray(longitudes, dtype=float))
+        dlat = lat[:, None] - lat[None, :]
+        dlon = lon[:, None] - lon[None, :]
+        a = np.sin(dlat / 2) ** 2 + np.cos(lat[:, None]) * np.cos(lat[None, :]) * np.sin(dlon / 2) ** 2
+        return 2 * earth_radius_km * np.arcsin(np.sqrt(np.clip(a, 0, 1)))
+
+    # Original report cell cb149
+    distance_matrix = haversine_distance_matrix(optimization_station_table['lat'], optimization_station_table['lon'])
+    np.fill_diagonal(distance_matrix, np.inf)
+
+    # Original report cell cb150
+    neighbor_count = min(12, station_count - 1)
+    candidate_edge_pairs = set()
+    for i in range(station_count):
+        nearest_stations = np.argsort(distance_matrix[i])[:neighbor_count]
+        for j in nearest_stations:
+            if i == j:
+                continue
+            candidate_edge_pairs.add((i, int(j)))
+            candidate_edge_pairs.add((int(j), i))
+
+    # Original report cell cb151
+    candidate_edges = []
+    for i, j in sorted(candidate_edge_pairs):
+        candidate_edges.append({'origin_index': i, 'destination_index': j, 'origin_short_name': station_ids[i], 'destination_short_name': station_ids[j], 'distance_km': float(distance_matrix[i, j])})
+    candidate_edges = pd.DataFrame(candidate_edges)
+    edge_count = len(candidate_edges)
+
+    # Original report cell cb153
+    optimization_times = pd.DatetimeIndex(sorted(pd.to_datetime(simulation_flows_60['time'].unique())))
+    time_count = len(optimization_times)
+    capacity = optimization_station_table.set_index('short_name').loc[station_ids, 'capacity'].astype(float).to_numpy()
+    initial_inventory = baseline_initial_inventory.reindex(station_ids).astype(float).to_numpy()
+
+    # Original report cell cb154
+    requested_departures = np.zeros((time_count, station_count), dtype=float)
+    requested_arrivals = np.zeros((time_count, station_count), dtype=float)
+    for k, time in enumerate(optimization_times):
+        block = simulation_flows_60.loc[simulation_flows_60['time'] == time].set_index('short_name').reindex(station_ids)
+        requested_departures[k, :] = block['departures'].fillna(0).to_numpy(dtype=float)
+        requested_arrivals[k, :] = block['arrivals'].fillna(0).to_numpy(dtype=float)
+
+    # Original report cell cb155
+    optimization_budget_per_hour = heuristic_budget_per_hour
+    service_failure_penalty = 25.0
+    relocation_cost_weight = 1.0
+
+    # Original report cell cb157
+    n_x = time_count * edge_count
+    n_s = (time_count + 1) * station_count
+    n_departure_service = time_count * station_count
+    n_arrival_service = time_count * station_count
+    n_unmet_departures = time_count * station_count
+    n_blocked_arrivals = time_count * station_count
+
+    # Original report cell cb158
+    offset_x = 0
+    offset_s = offset_x + n_x
+    offset_departure_service = offset_s + n_s
+    offset_arrival_service = offset_departure_service + n_departure_service
+    offset_unmet_departures = offset_arrival_service + n_arrival_service
+    offset_blocked_arrivals = offset_unmet_departures + n_unmet_departures
+    number_of_variables = offset_blocked_arrivals + n_blocked_arrivals
+
+    # Original report cell cb159
+    def idx_x(k, e):
+        return offset_x + k * edge_count + e
+
+    def idx_s(k, i):
+        return offset_s + k * station_count + i
+
+    def idx_departure_service(k, i):
+        return offset_departure_service + k * station_count + i
+
+    def idx_arrival_service(k, i):
+        return offset_arrival_service + k * station_count + i
+
+    def idx_unmet_departure(k, i):
+        return offset_unmet_departures + k * station_count + i
+
+    def idx_blocked_arrival(k, i):
+        return offset_blocked_arrivals + k * station_count + i
+
+    # Original report cell cb160
+    objective_coefficients = np.zeros(number_of_variables, dtype=float)
+    edge_distances = candidate_edges['distance_km'].to_numpy(dtype=float)
+    for k in range(time_count):
+        start = offset_x + k * edge_count
+        end = start + edge_count
+        objective_coefficients[start:end] = relocation_cost_weight * edge_distances
+    objective_coefficients[offset_unmet_departures:offset_blocked_arrivals] = service_failure_penalty
+    objective_coefficients[offset_blocked_arrivals:] = service_failure_penalty
+
+    # Original report cell cb161
+    bounds = []
+
+    # Original report cell cb162
+    bounds.extend([(0, None) for _ in range(n_x)])
+
+    # Original report cell cb163
+    for k in range(time_count + 1):
+        for i in range(station_count):
+            if k == 0:
+                value = float(initial_inventory[i])
+                bounds.append((value, value))
+            else:
+                bounds.append((0, float(capacity[i])))
+
+    # Original report cell cb164
+    for k in range(time_count):
+        for i in range(station_count):
+            bounds.append((0, float(requested_departures[k, i])))
+
+    # Original report cell cb165
+    for k in range(time_count):
+        for i in range(station_count):
+            bounds.append((0, float(requested_arrivals[k, i])))
+
+    # Original report cell cb166
+    for k in range(time_count):
+        for i in range(station_count):
+            bounds.append((0, float(requested_departures[k, i])))
+
+    # Original report cell cb167
+    for k in range(time_count):
+        for i in range(station_count):
+            bounds.append((0, float(requested_arrivals[k, i])))
+
+    # Original report cell cb168
+    if len(bounds) != number_of_variables:
+        raise ValueError('LP variable bounds do not match the variable count.')
+
+    # Original report cell cb169
+    outgoing_edges = [[] for _ in range(station_count)]
+    incoming_edges = [[] for _ in range(station_count)]
+    for e, row in candidate_edges.iterrows():
+        origin = int(row['origin_index'])
+        destination = int(row['destination_index'])
+        outgoing_edges[origin].append(e)
+        incoming_edges[destination].append(e)
+
+    # Original report cell cb170
+    eq_rows = []
+    eq_cols = []
+    eq_data = []
+    b_eq = []
+    eq_constraint_metadata = []
+    ub_rows = []
+    ub_cols = []
+    ub_data = []
+    b_ub = []
+    ub_constraint_metadata = []
+
+    # Original report cell cb171
+    def add_eq_constraint(coefficients, rhs, category, time=None, station=None):
+        row_number = len(b_eq)
+        for variable_index, value in coefficients:
+            if value == 0:
+                continue
+            eq_rows.append(row_number)
+            eq_cols.append(variable_index)
+            eq_data.append(value)
+        b_eq.append(float(rhs))
+        eq_constraint_metadata.append({'row': row_number, 'category': category, 'time': time, 'short_name': station, 'rhs': float(rhs)})
+
+    # Original report cell cb172
+    def add_ub_constraint(coefficients, rhs, category, time=None, station=None):
+        row_number = len(b_ub)
+        for variable_index, value in coefficients:
+            if value == 0:
+                continue
+            ub_rows.append(row_number)
+            ub_cols.append(variable_index)
+            ub_data.append(value)
+        b_ub.append(float(rhs))
+        ub_constraint_metadata.append({'row': row_number, 'category': category, 'time': time, 'short_name': station, 'rhs': float(rhs)})
+
+    # Original report cell cb173
+    for k, time in enumerate(optimization_times):
+        for i, station_id in enumerate(station_ids):
+            add_eq_constraint([(idx_departure_service(k, i), 1), (idx_unmet_departure(k, i), 1)], requested_departures[k, i], category='departure_service_balance', time=time, station=station_id)
+            add_eq_constraint([(idx_arrival_service(k, i), 1), (idx_blocked_arrival(k, i), 1)], requested_arrivals[k, i], category='arrival_service_balance', time=time, station=station_id)
+
+    # Original report cell cb174
+    for k, time in enumerate(optimization_times):
+        for i, station_id in enumerate(station_ids):
+            coefficients = [(idx_s(k + 1, i), 1), (idx_s(k, i), -1), (idx_departure_service(k, i), 1), (idx_arrival_service(k, i), -1)]
+            for e in incoming_edges[i]:
+                coefficients.append((idx_x(k, e), -1))
+            for e in outgoing_edges[i]:
+                coefficients.append((idx_x(k, e), 1))
+            add_eq_constraint(coefficients, 0, category='inventory_balance', time=time, station=station_id)
+
+    # Original report cell cb175
+    for k, time in enumerate(optimization_times):
+        for i, station_id in enumerate(station_ids):
+            coefficients = [(idx_s(k, i), -1)]
+            for e in outgoing_edges[i]:
+                coefficients.append((idx_x(k, e), 1))
+            add_ub_constraint(coefficients, 0, category='outgoing_bike_availability', time=time, station=station_id)
+
+    # Original report cell cb176
+    for k, time in enumerate(optimization_times):
+        for i, station_id in enumerate(station_ids):
+            coefficients = [(idx_s(k, i), 1)]
+            for e in incoming_edges[i]:
+                coefficients.append((idx_x(k, e), 1))
+            for e in outgoing_edges[i]:
+                coefficients.append((idx_x(k, e), -1))
+            add_ub_constraint(coefficients, capacity[i], category='post_rebalancing_capacity', time=time, station=station_id)
+
+    # Original report cell cb177
+    for k, time in enumerate(optimization_times):
+        for i, station_id in enumerate(station_ids):
+            coefficients = [(idx_departure_service(k, i), 1), (idx_s(k, i), -1)]
+            for e in incoming_edges[i]:
+                coefficients.append((idx_x(k, e), -1))
+            for e in outgoing_edges[i]:
+                coefficients.append((idx_x(k, e), 1))
+            add_ub_constraint(coefficients, 0, category='departure_inventory', time=time, station=station_id)
+
+    # Original report cell cb178
+    for k, time in enumerate(optimization_times):
+        for i, station_id in enumerate(station_ids):
+            coefficients = [(idx_arrival_service(k, i), 1), (idx_s(k, i), 1), (idx_departure_service(k, i), -1)]
+            for e in incoming_edges[i]:
+                coefficients.append((idx_x(k, e), 1))
+            for e in outgoing_edges[i]:
+                coefficients.append((idx_x(k, e), -1))
+            add_ub_constraint(coefficients, capacity[i], category='arrival_dock_capacity', time=time, station=station_id)
+
+    # Original report cell cb179
+    for k, time in enumerate(optimization_times):
+        coefficients = [(idx_x(k, e), 1) for e in range(edge_count)]
+        add_ub_constraint(coefficients, optimization_budget_per_hour, category='rebalancing_budget', time=time, station=None)
+
+    # Original report cell cb180
+    A_eq = coo_matrix((eq_data, (eq_rows, eq_cols)), shape=(len(b_eq), number_of_variables)).tocsr()
+    A_ub = coo_matrix((ub_data, (ub_rows, ub_cols)), shape=(len(b_ub), number_of_variables)).tocsr()
+    b_eq = np.asarray(b_eq, dtype=float)
+    b_ub = np.asarray(b_ub, dtype=float)
+
+    # Original report cell cb182
+    lp_result = linprog(c=objective_coefficients, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bounds, method='highs')
+
+    # Original report cell cb184
+    if not lp_result.success:
+        raise RuntimeError(f'The rebalancing LP did not solve successfully: {lp_result.message}')
+
+    # Original report cell cb185
+    solution = lp_result.x
+    x_solution = solution[offset_x:offset_s].reshape((time_count, edge_count))
+    inventory_solution = solution[offset_s:offset_departure_service].reshape((time_count + 1, station_count))
+    departure_service_solution = solution[offset_departure_service:offset_arrival_service].reshape((time_count, station_count))
+    arrival_service_solution = solution[offset_arrival_service:offset_unmet_departures].reshape((time_count, station_count))
+    unmet_departure_solution = solution[offset_unmet_departures:offset_blocked_arrivals].reshape((time_count, station_count))
+    blocked_arrival_solution = solution[offset_blocked_arrivals:].reshape((time_count, station_count))
+
+    # Original report cell cb186
+    optimized_transfer_records = []
+    solution_tolerance = 1e-07
+    for k, time in enumerate(optimization_times):
+        for e, edge in candidate_edges.iterrows():
+            bikes = float(x_solution[k, e])
+            if bikes <= solution_tolerance:
+                continue
+            origin_index = int(edge['origin_index'])
+            destination_index = int(edge['destination_index'])
+            optimized_transfer_records.append({'time': time, 'from_short_name': edge['origin_short_name'], 'to_short_name': edge['destination_short_name'], 'from_station': optimization_station_table.loc[origin_index, 'station_name'], 'to_station': optimization_station_table.loc[destination_index, 'station_name'], 'from_lat': optimization_station_table.loc[origin_index, 'lat'], 'from_lon': optimization_station_table.loc[origin_index, 'lon'], 'to_lat': optimization_station_table.loc[destination_index, 'lat'], 'to_lon': optimization_station_table.loc[destination_index, 'lon'], 'distance_km': edge['distance_km'], 'bikes': bikes, 'bike_km': bikes * edge['distance_km']})
+
+    # Original report cell cb187
+    optimized_transfers = pd.DataFrame(optimized_transfer_records, columns=['time', 'from_short_name', 'to_short_name', 'from_station', 'to_station', 'from_lat', 'from_lon', 'to_lat', 'to_lon', 'distance_km', 'bikes', 'bike_km'])
+
+    # Original report cell cb188
+    lp_integrality_audit = pd.Series({'Positive transfer variables': len(optimized_transfers), 'Fractional positive transfers': (np.abs(optimized_transfers['bikes'] - np.round(optimized_transfers['bikes'])) > 1e-06).sum() if len(optimized_transfers) > 0 else 0, 'Total bikes rebalanced': optimized_transfers['bikes'].sum() if len(optimized_transfers) > 0 else 0, 'Total relocation bike-km': optimized_transfers['bike_km'].sum() if len(optimized_transfers) > 0 else 0}, name='Value')
+
+    # Original report cell cb189
+    rebalance_net = np.zeros((time_count, station_count), dtype=float)
+    for k in range(time_count):
+        for e, edge in candidate_edges.iterrows():
+            flow = x_solution[k, e]
+            if abs(flow) <= solution_tolerance:
+                continue
+            origin = int(edge['origin_index'])
+            destination = int(edge['destination_index'])
+            rebalance_net[k, origin] -= flow
+            rebalance_net[k, destination] += flow
+
+    # Original report cell cb190
+    inventory_after_rebalancing = inventory_solution[:-1, :] + rebalance_net
+    unconstrained_end_inventory = inventory_after_rebalancing + requested_arrivals - requested_departures
+
+    # Original report cell cb191
+    optimized_simulation = pd.DataFrame({'time': np.repeat(optimization_times, station_count), 'time_end': np.repeat(optimization_times + pd.Timedelta(hours=1), station_count), 'short_name': np.tile(station_ids, time_count), 'station_name': np.tile(optimization_station_table['station_name'].to_numpy(), time_count), 'capacity': np.tile(capacity, time_count), 'start_inventory': inventory_solution[:-1, :].reshape(-1), 'rebalance_delta': rebalance_net.reshape(-1), 'inventory_after_rebalancing': inventory_after_rebalancing.reshape(-1), 'requested_departures': requested_departures.reshape(-1), 'served_departures': departure_service_solution.reshape(-1), 'unmet_departures': unmet_departure_solution.reshape(-1), 'requested_arrivals': requested_arrivals.reshape(-1), 'accepted_arrivals': arrival_service_solution.reshape(-1), 'blocked_arrivals': blocked_arrival_solution.reshape(-1), 'unconstrained_end_inventory': unconstrained_end_inventory.reshape(-1), 'end_inventory': inventory_solution[1:, :].reshape(-1)})
+
+    # Original report cell cb192
+    numeric_columns_to_clean = ['start_inventory', 'rebalance_delta', 'inventory_after_rebalancing', 'served_departures', 'unmet_departures', 'accepted_arrivals', 'blocked_arrivals', 'end_inventory']
+    for column in numeric_columns_to_clean:
+        optimized_simulation.loc[optimized_simulation[column].abs() < 1e-08, column] = 0
+
+    # Original report cell cb193
+    near_capacity = np.isclose(optimized_simulation['end_inventory'], optimized_simulation['capacity'], atol=1e-08, rtol=0)
+    optimized_simulation.loc[near_capacity, 'end_inventory'] = optimized_simulation.loc[near_capacity, 'capacity']
+
+    # Original report cell cb194
+    optimized_simulation['end_fill_ratio'] = optimized_simulation['end_inventory'] / optimized_simulation['capacity']
+
+    # Original report cell cb195
+    optimization_validation = pd.Series({'Minimum inventory': optimized_simulation['end_inventory'].min(), 'Maximum capacity violation': (optimized_simulation['end_inventory'] - optimized_simulation['capacity']).max(), 'Minimum served departures': optimized_simulation['served_departures'].min(), 'Minimum accepted arrivals': optimized_simulation['accepted_arrivals'].min(), 'Maximum departure accounting error': (optimized_simulation['served_departures'] + optimized_simulation['unmet_departures'] - optimized_simulation['requested_departures']).abs().max(), 'Maximum arrival accounting error': (optimized_simulation['accepted_arrivals'] + optimized_simulation['blocked_arrivals'] - optimized_simulation['requested_arrivals']).abs().max()}, name='Value')
+
+    # Original report cell cb196
+    hourly_rebalancing = optimized_transfers.groupby('time', as_index=False)['bikes'].sum() if len(optimized_transfers) > 0 else pd.DataFrame({'time': optimization_times, 'bikes': 0.0})
+    hourly_rebalancing = pd.DataFrame({'time': optimization_times}).merge(hourly_rebalancing, on='time', how='left')
+    hourly_rebalancing['bikes'] = hourly_rebalancing['bikes'].fillna(0)
+    hourly_rebalancing['budget'] = optimization_budget_per_hour
+    hourly_rebalancing['budget_slack'] = hourly_rebalancing['budget'] - hourly_rebalancing['bikes']
+
+    # Original report cell cb197
+    if (hourly_rebalancing['bikes'] > hourly_rebalancing['budget'] + 1e-06).any():
+        raise ValueError('The optimized solution violates the hourly rebalancing budget.')
+
+    # Original report cell cb198
+    optimized_policy_summary = summarize_simulation(optimized_simulation, optimized_transfers, 'LP optimization')
+
+    # Original report cell cb199
+    policy_comparison = policy_kpis.drop(columns=['Service improvement vs baseline'], errors='ignore').copy()
+    policy_comparison = pd.concat([policy_comparison, pd.DataFrame([optimized_policy_summary])], ignore_index=True)
+
+    # Original report cell cb200
+    baseline_failures = float(policy_comparison.loc[policy_comparison['Policy'] == 'No rebalancing', 'Total service failures'].iloc[0])
+    policy_comparison['Service improvement vs baseline'] = baseline_failures - policy_comparison['Total service failures']
+
+    # Original report cell cb201
+    def transfer_distance_summary(transfers):
+        if len(transfers) == 0:
+            return 0.0
+        total_bike_km = 0.0
+        for _, row in transfers.iterrows():
+            origin = station_index[row['from_short_name']]
+            destination = station_index[row['to_short_name']]
+            total_bike_km += row['bikes'] * distance_matrix[origin, destination]
+        return float(total_bike_km)
+
+    # Original report cell cb202
+    heuristic_bike_km = transfer_distance_summary(heuristic_transfers)
+    optimized_bike_km = optimized_transfers['bike_km'].sum() if len(optimized_transfers) > 0 else 0.0
+    policy_comparison['Relocation bike-km'] = policy_comparison['Policy'].map({'No rebalancing': 0.0, 'Reactive heuristic': heuristic_bike_km, 'LP optimization': optimized_bike_km})
+
+    # Original report cell cb231
+    def solve_lp_variant(hourly_budget=None, failure_penalty=None, capacity_changes=None):
+        variant_objective = objective_coefficients.copy()
+        variant_b_ub = b_ub.copy()
+        variant_bounds = list(bounds)
+        if failure_penalty is None:
+            failure_penalty = service_failure_penalty
+        variant_objective[offset_unmet_departures:offset_blocked_arrivals] = float(failure_penalty)
+        variant_objective[offset_blocked_arrivals:] = float(failure_penalty)
+        if hourly_budget is not None:
+            if np.isscalar(hourly_budget):
+                budget_values = np.full(len(budget_constraint_rows), float(hourly_budget))
+            else:
+                budget_values = np.asarray(hourly_budget, dtype=float)
+                if len(budget_values) != len(budget_constraint_rows):
+                    raise ValueError('The hourly-budget vector must match the number of time intervals.')
+            variant_b_ub[budget_constraint_rows] = budget_values
+        if capacity_changes is not None:
+            capacity_categories = ['post_rebalancing_capacity', 'arrival_dock_capacity']
+            for station_id, capacity_delta in capacity_changes.items():
+                if station_id not in station_position:
+                    raise KeyError(f'Unknown station: {station_id}')
+                capacity_delta = float(capacity_delta)
+                if capacity_delta < 0:
+                    raise ValueError('Part 15 capacity sensitivity uses nonnegative capacity changes.')
+                i = station_position[station_id]
+                for k in range(1, time_count + 1):
+                    variable_index = idx_s(k, i)
+                    lower_bound, upper_bound = variant_bounds[variable_index]
+                    if upper_bound is None:
+                        raise ValueError('The inventory upper bound is missing.')
+                    variant_bounds[variable_index] = (lower_bound, float(upper_bound) + capacity_delta)
+                station_capacity_rows = ub_constraint_results.loc[ub_constraint_results['category'].isin(capacity_categories) & (ub_constraint_results['short_name'] == station_id), 'row'].astype(int).to_numpy()
+                variant_b_ub[station_capacity_rows] += capacity_delta
+        return linprog(c=variant_objective, A_ub=A_ub, b_ub=variant_b_ub, A_eq=A_eq, b_eq=b_eq, bounds=variant_bounds, method='highs')
+
+    # Original report cell cb232
+    requested_event_total = requested_departures.sum() + requested_arrivals.sum()
+
+    def extract_lp_metrics(result, failure_penalty):
+        if not result.success:
+            return {'success': False, 'status': result.status, 'message': result.message}
+        result_x = result.x[offset_x:offset_s].reshape((time_count, edge_count))
+        unmet_departures = result.x[offset_unmet_departures:offset_blocked_arrivals].sum()
+        blocked_arrivals = result.x[offset_blocked_arrivals:].sum()
+        total_service_failures = unmet_departures + blocked_arrivals
+        bikes_rebalanced = result_x.sum()
+        relocation_bike_km = (result_x * edge_distances[None, :]).sum()
+        relocation_cost = relocation_cost_weight * relocation_bike_km
+        service_failure_cost = float(failure_penalty) * total_service_failures
+        service_success_rate = 1 - total_service_failures / requested_event_total
+        return {'success': True, 'status': result.status, 'objective_value': result.fun, 'unmet_departures': unmet_departures, 'blocked_arrivals': blocked_arrivals, 'total_service_failures': total_service_failures, 'service_success_rate': service_success_rate, 'bikes_rebalanced': bikes_rebalanced, 'relocation_bike_km': relocation_bike_km, 'relocation_cost': relocation_cost, 'service_failure_cost': service_failure_cost, 'objective_reconstruction_error': abs(result.fun - (relocation_cost + service_failure_cost))}
+
+
+    # Preparation for the original sensitivity solver; no capacity changes are made.
+    ub_constraint_results = pd.DataFrame(ub_constraint_metadata)
+    budget_constraint_rows = ub_constraint_results.loc[
+        ub_constraint_results['category'].eq('rebalancing_budget'), 'row'
+    ].astype(int).to_numpy()
+    station_position = {station_id: i for i, station_id in enumerate(station_ids)}
+    sensitivity_rows = []
+    for hourly_budget in budget_grid:
+        print(f"  Full-day sensitivity: hourly budget {hourly_budget:g}", flush=True)
+        result = (lp_result if float(hourly_budget) == float(optimization_budget_per_hour)
+                  else solve_lp_variant(hourly_budget=float(hourly_budget),
+                                        failure_penalty=service_failure_penalty))
+        if not result.success:
+            raise RuntimeError(f"Budget {hourly_budget:g}: {result.message}")
+        metrics = extract_lp_metrics(result, service_failure_penalty)
+        sensitivity_rows.append({
+            'Hourly budget': float(hourly_budget), 'Success': True,
+            'Objective value': metrics['objective_value'],
+            'Unmet departures': metrics['unmet_departures'],
+            'Blocked arrivals': metrics['blocked_arrivals'],
+            'Total service failures': metrics['total_service_failures'],
+            'Bikes rebalanced': metrics['bikes_rebalanced'],
+            'Relocation bike-km': metrics['relocation_bike_km'],
+            'Binding budget intervals': int((
+                np.abs(result.ineqlin.residual[budget_constraint_rows]) <= 1e-7
+            ).sum()),
+        })
+    return {
+        'baseline_inventory_simulation.csv': baseline_simulation,
+        'heuristic_inventory_simulation.csv': heuristic_simulation,
+        'heuristic_rebalancing_transfers.csv': heuristic_transfers,
+        'optimized_inventory_simulation.csv': optimized_simulation,
+        'optimized_rebalancing_transfers.csv': optimized_transfers,
+        'policy_comparison.csv': policy_comparison,
+        'rebalancing_budget_sensitivity.csv': pd.DataFrame(sensitivity_rows),
+        '_parameters': {
+            'initial_fill_ratio': baseline_fill_ratio,
+            'initial_inventory_source': 'saved baseline first interval, reused as a midnight scenario assumption',
+            'heuristic_budget_per_hour': int(heuristic_budget_per_hour),
+            'lp_budget_per_hour': int(optimization_budget_per_hour),
+            'service_failure_penalty': service_failure_penalty,
+            'relocation_cost_weight': relocation_cost_weight,
+            'nearest_neighbors': int(neighbor_count),
+            'directed_candidate_arcs': int(edge_count),
+            'lp_objective': float(lp_result.fun),
+            'fractional_positive_transfers': int(lp_integrality_audit['Fractional positive transfers']),
+        },
+    }
+
+```
+
+```{python}
+#| label: full-day-data-builder
+#| include: false
+# All full-day computation is inside this QMD. No helper .py files are imported.
+# Source: the user's analytical report and the earlier update package.
+# Only initialization is fixed: the existing per-station allocation is reused.
+# Missing station-hours, changed demand, or changed service rules still fail validation.
+FORCE_REBUILD_24H = False
+MODEL_CODE_SHA256 = '352549334174cee0ed793c2c687f75721eeb470383701c12e3370ee9e54ee443'
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import tempfile
+
+import numpy as np
+import pandas as pd
+
+SIM_FILES = (
+    'baseline_inventory_simulation.csv',
+    'heuristic_inventory_simulation.csv',
+    'optimized_inventory_simulation.csv',
+)
+KEYS = ['time', 'short_name']
+TOL = 1e-6
+
+
+def find_root(start: Path) -> Path:
+    start = start.resolve()
+    for path in (start, *start.parents):
+        if (path / 'Data' / 'Processed').is_dir():
+            return path
+    raise FileNotFoundError('Cannot find Data/Processed above this script. Keep it in Interactive Dashboard.')
+
+
+def ids(series: pd.Series) -> pd.Series:
+    result = series.astype('string').str.strip().str.replace(r'\.0+$', '', regex=True)
+    if result.isna().any() or result.eq('').any():
+        raise ValueError('Station IDs contain missing/empty values.')
+    return result
+
+
+def check_numeric(frame: pd.DataFrame, fields: list[str], label: str) -> None:
+    for field in fields:
+        frame[field] = pd.to_numeric(frame[field], errors='raise')
+        if not np.isfinite(frame[field].to_numpy(dtype=float)).all():
+            raise ValueError(f'{label}: {field} contains missing/nonfinite values.')
+
+
+def read_sim(path: Path) -> pd.DataFrame:
+    frame = pd.read_csv(path, dtype={'short_name': 'string'})
+    frame['short_name'] = ids(frame['short_name'])
+    for column in ['time', 'time_end']:
+        frame[column] = pd.to_datetime(frame[column], errors='raise')
+    if frame.duplicated(KEYS).any():
+        raise ValueError(f'{path.name} contains duplicate station-time records.')
+    return frame.sort_values(KEYS).reset_index(drop=True)
+
+
+def check_panel(frame: pd.DataFrame, times: pd.DatetimeIndex, station_ids: list[str], label: str) -> None:
+    if frame.duplicated(KEYS).any():
+        raise ValueError(f'{label}: duplicate station-time rows.')
+    expected = pd.MultiIndex.from_product([times, station_ids], names=KEYS)
+    actual = pd.MultiIndex.from_frame(frame[KEYS])
+    missing = expected.difference(actual)
+    unexpected = actual.difference(expected)
+    if len(missing) or len(unexpected):
+        raise ValueError(f'{label}: incomplete/mismatched panel: {len(missing)} missing, {len(unexpected)} unexpected. Missing data are not replaced by zero.')
+
+
+def validate_result(frame: pd.DataFrame, times: pd.DatetimeIndex, station_ids: list[str], label: str) -> None:
+    check_panel(frame, times, station_ids, label)
+    ordered = frame.sort_values(KEYS).copy()
+    numeric = ['capacity', 'start_inventory', 'rebalance_delta', 'inventory_after_rebalancing',
+               'requested_departures', 'served_departures', 'unmet_departures',
+               'requested_arrivals', 'accepted_arrivals', 'blocked_arrivals', 'end_inventory']
+    check_numeric(ordered, numeric, label)
+    for field in ['start_inventory', 'inventory_after_rebalancing', 'end_inventory']:
+        if (ordered[field] < -TOL).any() or (ordered[field] > ordered['capacity'] + TOL).any():
+            raise ValueError(f'{label}: inventory violates capacity in {field}.')
+    if not (ordered.time_end - ordered.time).eq(pd.Timedelta(hours=1)).all():
+        raise ValueError(f'{label}: intervals must be exactly one hour.')
+    identities = [
+        ordered.start_inventory + ordered.rebalance_delta - ordered.inventory_after_rebalancing,
+        ordered.requested_departures - ordered.served_departures - ordered.unmet_departures,
+        ordered.requested_arrivals - ordered.accepted_arrivals - ordered.blocked_arrivals,
+        ordered.inventory_after_rebalancing - ordered.served_departures + ordered.accepted_arrivals - ordered.end_inventory,
+    ]
+    if any((error.abs() > TOL).any() for error in identities):
+        raise ValueError(f'{label}: inventory or event accounting failed.')
+    for field in ['requested_departures', 'served_departures', 'unmet_departures',
+                  'requested_arrivals', 'accepted_arrivals', 'blocked_arrivals']:
+        if (ordered[field] < -TOL).any():
+            raise ValueError(f'{label}: negative event counts in {field}.')
+    prev = ordered.groupby('short_name', sort=False).end_inventory.shift()
+    mask = prev.notna()
+    if ((ordered.loc[mask, 'start_inventory'] - prev[mask]).abs() > TOL).any():
+        raise ValueError(f'{label}: inventory is not continuous between hours.')
+    if (ordered.groupby('time').rebalance_delta.sum().abs() > TOL).any():
+        raise ValueError(f'{label}: rebalancing does not conserve bikes.')
+
+
+def validate_transfers(sim: pd.DataFrame, transfers: pd.DataFrame, hourly_budget: float, label: str) -> None:
+    if transfers.empty:
+        if (sim.rebalance_delta.abs() > TOL).any():
+            raise ValueError(f'{label}: missing transfer records for nonzero rebalancing.')
+        return
+    check_numeric(transfers, ['bikes'], label)
+    allowed = set(sim.short_name)
+    if not set(transfers.from_short_name).union(transfers.to_short_name).issubset(allowed):
+        raise ValueError(f'{label}: transfer endpoint outside the model scope.')
+    if not set(transfers.time).issubset(set(sim.time)) or (transfers.bikes <= 0).any():
+        raise ValueError(f'{label}: invalid transfer time or amount.')
+    if (transfers.groupby('time').bikes.sum() > hourly_budget + TOL).any():
+        raise ValueError(f'{label}: hourly relocation budget exceeded.')
+    outgoing = transfers.groupby(['time', 'from_short_name']).bikes.sum()
+    incoming = transfers.groupby(['time', 'to_short_name']).bikes.sum()
+    outgoing.index.names = KEYS
+    incoming.index.names = KEYS
+    index = pd.MultiIndex.from_frame(sim[KEYS])
+    delta = incoming.reindex(index, fill_value=0).to_numpy() - outgoing.reindex(index, fill_value=0).to_numpy()
+    np.testing.assert_allclose(sim.rebalance_delta, delta, atol=TOL, rtol=0,
+                               err_msg=f'{label}: transfers and simulation disagree.')
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as file:
+        for block in iter(lambda: file.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def build_dashboard_in_qmd(root: Path, force: bool = False) -> Path:
+    source = root / 'Data' / 'Processed'
+    target = source / 'dashboard_24h_qmd'
+    filenames = [*SIM_FILES, 'stations_with_zip.csv', 'station_hourly_flows.csv',
+                 'optimized_rebalancing_transfers.csv', 'heuristic_rebalancing_transfers.csv',
+                 'rebalancing_budget_sensitivity.csv']
+    missing = [str(source / name) for name in filenames if not (source / name).is_file()]
+    if missing:
+        raise FileNotFoundError('Missing inputs (do not substitute three-hour data for the full hourly panel):\n' + '\n'.join(missing))
+    signature = _input_signature(root, filenames)
+    manifest_path = target / 'scenario_manifest.json'
+    if not force and manifest_path.is_file():
+        try:
+            cached = json.loads(manifest_path.read_text(encoding='utf-8'))
+            expected_files = set(SIM_FILES) | {
+                'heuristic_rebalancing_transfers.csv', 'optimized_rebalancing_transfers.csv',
+                'stations_with_zip.csv', 'policy_comparison.csv',
+                'rebalancing_budget_sensitivity.csv', 'selected_scenario_hourly_flows.csv'}
+            hashes = cached.get('output_sha256', {})
+            if (cached.get('input_signature') == signature and cached.get('intervals') == 24
+                    and expected_files.issubset(hashes)
+                    and all((target / name).is_file() and sha256(target / name) == digest
+                            for name, digest in hashes.items())):
+                print('Using validated 24-hour results: ' + str(target), flush=True)
+                return target
+        except (OSError, ValueError, KeyError, TypeError):
+            pass  # Recompute a corrupt or outdated cache; never use partial results.
+    print('Reading the existing station scope and reference scenario...', flush=True)
+    refs = {name: read_sim(source / name) for name in SIM_FILES}
+    baseline = refs[SIM_FILES[0]]
+    reference_times = pd.DatetimeIndex(sorted(baseline.time.unique()))
+    if not len(reference_times):
+        raise ValueError('The baseline reference is empty.')
+    days = reference_times.normalize().unique()
+    if len(days) != 1:
+        raise ValueError('Expected one reference study date; found multiple dates.')
+    day = pd.Timestamp(days[0])
+    times = pd.date_range(start=day, periods=24, freq='h')
+    if not reference_times.isin(times).all():
+        raise ValueError('Reference intervals are not hourly boundaries on the study date.')
+    station_ids = sorted(baseline.short_name.unique().tolist())
+    if len(station_ids) < 2:
+        raise ValueError('At least two modeled stations are needed.')
+    for name, frame in refs.items():
+        validate_result(frame, reference_times, station_ids, name)
+    # Key change: read the recorded per-station allocation by ID. Recomputing
+    # the original floor/round allocation can assign the leftover bikes to
+    # different odd-capacity stations, even when the fleet total is identical.
+    first_time = reference_times[0]
+    saved_initial = (baseline.loc[baseline.time.eq(first_time)]
+                     .set_index('short_name')['start_inventory'].reindex(station_ids))
+    check_numeric(baseline, ['capacity', 'start_inventory'], 'baseline initial condition')
+    if not np.allclose(saved_initial, np.round(saved_initial), rtol=0, atol=TOL):
+        raise ValueError('The saved baseline initial inventory is not integer-valued.')
+    for name in SIM_FILES[1:]:
+        other_initial = (refs[name].loc[refs[name].time.eq(first_time)]
+                         .set_index('short_name')['start_inventory'].reindex(station_ids))
+        if not np.allclose(saved_initial, other_initial, rtol=0, atol=TOL):
+            raise ValueError(name + ': initial inventory differs from the saved baseline. '
+                             'The three policies must share the same initial condition.')
+    capacities = baseline.groupby('short_name').capacity.agg(['min', 'max'])
+    if not np.allclose(capacities['min'], capacities['max'], rtol=0, atol=TOL):
+        raise ValueError('Station capacity changes within the reference window.')
+    geo = pd.read_csv(source / 'stations_with_zip.csv', dtype={'short_name': 'string', 'ZIP_CODE': 'string'})
+    geo['short_name'] = ids(geo.short_name)
+    geo = geo.loc[geo.short_name.isin(station_ids)].copy()
+    if geo.short_name.duplicated().any() or set(geo.short_name) != set(station_ids):
+        raise ValueError('Station geography does not uniquely cover the reference station set.')
+    if 'is_dc' not in geo or not geo.is_dc.astype('string').str.lower().isin(['true', '1']).all():
+        raise ValueError('All modeled stations must have is_dc=True.')
+    if geo.ZIP_CODE.isna().any():
+        raise ValueError('Some modeled stations have no ZIP assignment.')
+    check_numeric(geo, ['capacity', 'lat', 'lon'], 'station geography')
+    np.testing.assert_allclose(geo.set_index('short_name').capacity.reindex(station_ids),
+                               capacities['min'].reindex(station_ids), atol=TOL, rtol=0,
+                               err_msg='Station-reference capacity differs from simulation capacity.')
+    if (geo.capacity <= 0).any() or not np.allclose(geo.capacity, np.round(geo.capacity)):
+        raise ValueError('Station capacities must be positive integers.')
+    if not geo.lat.between(-90, 90).all() or not geo.lon.between(-180, 180).all():
+        raise ValueError('Invalid station coordinates.')
+    half_capacity = 0.5 * capacities['min'].reindex(station_ids).to_numpy(dtype=float)
+    allocation = saved_initial.to_numpy(dtype=float)
+    if (not np.logical_or(np.isclose(allocation, np.floor(half_capacity), atol=TOL, rtol=0),
+                          np.isclose(allocation, np.ceil(half_capacity), atol=TOL, rtol=0)).all()
+            or not np.isclose(allocation.sum(), round(half_capacity.sum()), atol=TOL, rtol=0)):
+        raise ValueError("Saved initial inventory is not the report's half-capacity integer allocation. "
+                         'The current model source is needed; this setting will not be guessed.')
+    geo['is_dc'] = True
+    geo = geo.sort_values('short_name').reset_index(drop=True)
+    stations = geo[['short_name', 'name', 'capacity', 'lat', 'lon', 'ZIP_CODE']].rename(columns={'name': 'station_name'})
+    stations['capacity'] = stations.capacity.astype(int)
+    monthly = pd.read_csv(source / 'station_hourly_flows.csv',
+                          usecols=['time', 'short_name', 'departures', 'arrivals'],
+                          dtype={'short_name': 'string'})
+    monthly['short_name'] = ids(monthly.short_name)
+    monthly['time'] = pd.to_datetime(monthly.time, errors='raise')
+    flows = monthly.loc[monthly.time.isin(times) & monthly.short_name.isin(station_ids)].copy()
+    check_panel(flows, times, station_ids, '24-hour source flows')
+    check_numeric(flows, ['departures', 'arrivals'], '24-hour source flows')
+    if (flows[['departures', 'arrivals']] < 0).any().any() or not np.allclose(flows[['departures', 'arrivals']], np.round(flows[['departures', 'arrivals']])):
+        raise ValueError('The saved historical hourly panel must contain nonnegative integer event counts.')
+    flows[['departures', 'arrivals']] = flows[['departures', 'arrivals']].astype(int)
+    flows = flows.merge(stations, on='short_name', how='left', validate='many_to_one').sort_values(KEYS).reset_index(drop=True)
+    flows['arrival_rate'] = flows.arrivals
+    flows['departure_rate'] = flows.departures
+    reference_flows = flows.loc[flows.time.isin(reference_times)].reset_index(drop=True)
+    print('Checking the recovered model against your saved reference window...', flush=True)
+    # Validate historical demand independently of inventory, before solving.
+    for name in SIM_FILES:
+        for saved_col, flow_col in [('requested_departures', 'departures'),
+                                     ('requested_arrivals', 'arrivals')]:
+            left = refs[name].set_index(KEYS)[saved_col].sort_index()
+            right = reference_flows.set_index(KEYS)[flow_col].sort_index()
+            if not np.allclose(left.to_numpy(float), right.to_numpy(float), atol=TOL, rtol=0):
+                raise ValueError(name + ': source hourly demand differs from saved demand in ' + saved_col
+                                 + '. Missing hours or different demand cannot be repaired by changing the menu.')
+    replay = run_report_model(stations, reference_flows, initial_inventory_input=saved_initial)
+    fields = ['capacity', 'start_inventory', 'rebalance_delta', 'inventory_after_rebalancing',
+              'requested_departures', 'served_departures', 'unmet_departures', 'requested_arrivals',
+              'accepted_arrivals', 'blocked_arrivals', 'end_inventory']
+    for name in SIM_FILES[:2]:
+        expected = refs[name].set_index(KEYS).sort_index()
+        actual = replay[name].set_index(KEYS).sort_index()
+        _compare_reference(actual, expected, fields, name, root)
+
+    # LP solutions need not be unique. Compare inputs and objective, not exact transfer routes.
+    lp_ref = refs[SIM_FILES[2]].set_index(KEYS).sort_index()
+    lp_new = replay[SIM_FILES[2]].set_index(KEYS).sort_index()
+    np.testing.assert_allclose(lp_new[['requested_departures', 'requested_arrivals']],
+                               lp_ref[['requested_departures', 'requested_arrivals']], atol=TOL, rtol=0)
+    first = reference_times[0]
+    np.testing.assert_allclose(lp_ref.xs(first, level='time').start_inventory,
+                               lp_new.xs(first, level='time').start_inventory, atol=TOL, rtol=0)
+    ref_routes = pd.read_csv(source / 'optimized_rebalancing_transfers.csv')
+    if 'bike_km' not in ref_routes:
+        raise ValueError('The reference LP transfer CSV must include bike_km for objective validation.')
+    check_numeric(ref_routes, ['bike_km'], 'reference LP transfers')
+    ref_objective = 25.0 * float(lp_ref.unmet_departures.sum() + lp_ref.blocked_arrivals.sum()) + float(ref_routes.bike_km.sum())
+    if not np.isclose(ref_objective, replay['_parameters']['lp_objective'], atol=1e-4, rtol=1e-7):
+        raise ValueError('The saved LP objective differs from the recovered model. The current optimization QMD is needed before expanding this scenario.')
+    old_sensitivity = pd.read_csv(source / 'rebalancing_budget_sensitivity.csv')
+    budget_column = next((c for c in old_sensitivity if c.strip().lower().replace('_', ' ') == 'hourly budget'), None)
+    if budget_column is None:
+        raise ValueError('Cannot find the reference Hourly budget column; the budget grid will not be guessed.')
+    budgets = pd.to_numeric(old_sensitivity[budget_column], errors='raise').to_numpy(dtype=float)
+    if not len(budgets) or not np.isfinite(budgets).all() or (budgets < 0).any():
+        raise ValueError('Invalid reference budget grid.')
+    print(f'Reference check passed. Solving {day:%Y-%m-%d}, 00:00–24:00, {len(station_ids)} stations...', flush=True)
+    results = run_report_model(stations, flows, budget_grid=sorted(set(budgets)),
+                               initial_inventory_input=saved_initial)
+    for name in SIM_FILES:
+        validate_result(results[name], times, station_ids, name)
+    validate_transfers(results[SIM_FILES[1]], results['heuristic_rebalancing_transfers.csv'], results['_parameters']['heuristic_budget_per_hour'], 'heuristic')
+    validate_transfers(results[SIM_FILES[2]], results['optimized_rebalancing_transfers.csv'], results['_parameters']['lp_budget_per_hour'], 'LP')
+    for name in SIM_FILES[1:]:
+        for col in ['requested_departures', 'requested_arrivals']:
+            np.testing.assert_allclose(results[name][col], results[SIM_FILES[0]][col], atol=TOL, rtol=0)
+    parameters = results.pop('_parameters')
+    manifest = {
+        'schema_version': 2, 'input_signature': signature, 'created_utc': datetime.now(timezone.utc).isoformat(),
+        'scenario_date': day.strftime('%Y-%m-%d'), 'start_hour': 0, 'end_hour': 24,
+        'intervals': 24, 'stations': len(station_ids), 'parameters': parameters,
+        'model_source': 'capital_bikeshare_optimization(1).html (user-provided analytical report)',
+        'scenario_type': 'Continuous full-day simulation; full-horizon LP with known scenario demand.',
+        'initial_condition': 'Exact per-station allocation from the saved first baseline interval, applied once at midnight as a new scenario assumption; no observed midnight inventory is claimed.',
+        'input_sha256': {name: sha256(source / name) for name in filenames},
+        'model_code_sha256': MODEL_CODE_SHA256,
+    }
+    # Stage every result before publishing the cache, so a failed computation
+    # cannot leave the dashboard pointed at a partial 24-hour dataset.
+    with tempfile.TemporaryDirectory(prefix='.dashboard24h_build_', dir=source) as tmp:
+        stage = Path(tmp) / 'dashboard_24h_qmd'
+        stage.mkdir()
+        results['stations_with_zip.csv'] = geo
+        results['selected_scenario_hourly_flows.csv'] = flows
+        for name, frame in results.items():
+            frame.to_csv(stage / name, index=False, date_format='%Y-%m-%d %H:%M:%S')
+        manifest['output_sha256'] = {p.name: sha256(p) for p in stage.glob('*.csv')}
+        (stage / 'scenario_manifest.json').write_text(json.dumps(manifest, indent=2, allow_nan=False), encoding='utf-8')
+        if target.exists():
+            backup = target.with_name('dashboard_24h_qmd.backup_' + datetime.now().strftime('%Y%m%d_%H%M%S_%f'))
+            target.rename(backup)
+            print(f'Previous full-day dataset backed up to: {backup}', flush=True)
+        stage.rename(target)
+    print(f'\nSaved: {target}\n24 intervals per policy; {len(station_ids) * 24} station-hour rows per policy.\nOriginal three-hour files were not changed.', flush=True)
+    if parameters['fractional_positive_transfers']:
+        print('NOTE: The original continuous LP has fractional transfers in this full-day solution. They were NOT rounded.', flush=True)
+    return target
+
+
+
+def _input_signature(root: Path, filenames: list[str]) -> str:
+    """Invalidate the cache on input/model/Python-cell changes, not CSS edits."""
+    qmd = root / 'Interactive Dashboard' / 'interactive_dashboard.qmd'
+    if not qmd.is_file():
+        raise FileNotFoundError('Keep this source named interactive_dashboard.qmd in Interactive Dashboard.')
+    import re
+    chunks = re.findall(r'^```\{python\}[^\n]*\n([\s\S]*?)^```[ \t]*$',
+                        qmd.read_text(encoding='utf-8'), re.MULTILINE)
+    if not chunks:
+        raise ValueError('Cannot fingerprint the Python cells in interactive_dashboard.qmd.')
+    payload = {'model': MODEL_CODE_SHA256,
+               'python_cells': hashlib.sha256('\n'.join(chunks).encode()).hexdigest(),
+               'inputs': {name: sha256(root / 'Data' / 'Processed' / name) for name in filenames}}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+
+
+def _compare_reference(actual, expected, fields, name, root):
+    """Write an actionable diagnostic instead of an unlabelled NumPy array."""
+    if actual.index.tolist() != expected.index.tolist():
+        raise ValueError(name + ': reference station-time keys differ.')
+    a = actual[fields].to_numpy(dtype=float)
+    b = expected[fields].to_numpy(dtype=float)
+    failed = ~np.isclose(a, b, atol=TOL, rtol=0)
+    if not failed.any():
+        return
+    row_ids, col_ids = np.where(failed)
+    records = []
+    for i, j in zip(row_ids, col_ids):
+        time, station = actual.index[i]
+        records.append({'file': name, 'time': time, 'short_name': station,
+                        'field': fields[j], 'saved': b[i,j], 'replayed': a[i,j],
+                        'difference': a[i,j] - b[i,j]})
+    differences = pd.DataFrame(records)
+    path = root / 'Interactive Dashboard' / 'dashboard_reference_differences.csv'
+    differences.to_csv(path, index=False)
+    first = differences.iloc[0]
+    raise ValueError(
+        f"{name}: after using the exact saved initial inventory, a difference remains. "
+        f"First difference: station {first['short_name']}, {first['time']}, "
+        f"{first['field']}: saved={first['saved']}, replayed={first['replayed']}. "
+        f"See {path}. The reference check was NOT disabled; original results were not overwritten. "
+        "Use the bikeshare Jupyter kernel. Remaining differences need the saved CSVs/current model source."
+    )
+
+```
+
+```{python}
+#| label: dashboard-data-preparation
+#| include: false
+from pathlib import Path
+import json
+import numpy as np
+import pandas as pd
+import geopandas as gpd
+from IPython.display import HTML, display
+project_dir = next((p for p in (Path.cwd(), *Path.cwd().parents) if (p / 'Data' / 'Processed').is_dir()), None)
+if project_dir is None:
+    raise FileNotFoundError('Cannot locate the project Data/Processed directory.')
+raw_dir = project_dir / 'Data' / 'Raw'
+# Build or validate the cached full-day dataset during Quarto execution.
+processed_dir = build_dashboard_in_qmd(project_dir, force=FORCE_REBUILD_24H)
+_dashboard_manifest = json.loads((processed_dir / 'scenario_manifest.json').read_text(encoding='utf-8'))
+required_files = {'stations_with_zip': processed_dir / 'stations_with_zip.csv', 'baseline_simulation': processed_dir / 'baseline_inventory_simulation.csv', 'heuristic_simulation': processed_dir / 'heuristic_inventory_simulation.csv', 'heuristic_transfers': processed_dir / 'heuristic_rebalancing_transfers.csv', 'optimized_simulation': processed_dir / 'optimized_inventory_simulation.csv', 'optimized_transfers': processed_dir / 'optimized_rebalancing_transfers.csv', 'policy_comparison': processed_dir / 'policy_comparison.csv', 'budget_sensitivity': processed_dir / 'rebalancing_budget_sensitivity.csv', 'zip_polygons': raw_dir / 'dc_zip_codes.geojson'}
+missing_files = [path for path in required_files.values() if not path.exists()]
+if len(missing_files) > 0:
+    raise FileNotFoundError('Missing required App input files:\n' + '\n'.join((str(path) for path in missing_files)))
+stations_with_zip = pd.read_csv(required_files['stations_with_zip'], dtype={'short_name': 'string', 'ZIP_CODE': 'string'})
+baseline_simulation = pd.read_csv(required_files['baseline_simulation'], dtype={'short_name': 'string'}, parse_dates=['time', 'time_end'])
+heuristic_simulation = pd.read_csv(required_files['heuristic_simulation'], dtype={'short_name': 'string'}, parse_dates=['time', 'time_end'])
+heuristic_transfers = pd.read_csv(required_files['heuristic_transfers'], dtype={'from_short_name': 'string', 'to_short_name': 'string'}, parse_dates=['time'])
+optimized_simulation = pd.read_csv(required_files['optimized_simulation'], dtype={'short_name': 'string'}, parse_dates=['time', 'time_end'])
+optimized_transfers = pd.read_csv(required_files['optimized_transfers'], dtype={'from_short_name': 'string', 'to_short_name': 'string'}, parse_dates=['time'])
+policy_comparison = pd.read_csv(required_files['policy_comparison'])
+budget_sensitivity = pd.read_csv(required_files['budget_sensitivity'])
+station_reference_columns = ['short_name', 'name', 'capacity', 'lat', 'lon', 'ZIP_CODE', 'is_dc']
+missing_station_columns = [column for column in station_reference_columns if column not in stations_with_zip.columns]
+if len(missing_station_columns) > 0:
+    raise ValueError('stations_with_zip.csv is missing columns: ' + ', '.join(missing_station_columns))
+station_reference = stations_with_zip.loc[stations_with_zip['is_dc'].astype(bool), station_reference_columns].copy()
+station_reference['short_name'] = station_reference['short_name'].astype('string')
+station_reference['ZIP_CODE'] = station_reference['ZIP_CODE'].astype('string')
+station_reference = station_reference.dropna(subset=['short_name', 'ZIP_CODE', 'lat', 'lon', 'capacity']).drop_duplicates(subset=['short_name']).reset_index(drop=True)
+modeled_station_ids = set(optimized_simulation['short_name'].dropna().astype(str))
+station_reference = station_reference.loc[station_reference['short_name'].astype(str).isin(modeled_station_ids)].copy().reset_index(drop=True)
+if station_reference['short_name'].nunique() != len(modeled_station_ids):
+    raise ValueError('The App station reference does not match the modeled station set.')
+zip_gdf = gpd.read_file(required_files['zip_polygons']).to_crs('EPSG:4326')
+zip_field_candidates = ['ZIP_CODE_TEXT', 'ZIPCODE', 'ZIP_CODE']
+zip_field = next((column for column in zip_field_candidates if column in zip_gdf.columns), None)
+if zip_field is None:
+    raise ValueError('No recognized ZIP-code field was found.')
+zip_gdf['ZIP_CODE'] = zip_gdf[zip_field].astype('string').str.replace('\\.0$', '', regex=True).str.zfill(5)
+if 'TYPE' in zip_gdf.columns:
+    standard_zip_mask = zip_gdf['TYPE'].astype('string').str.strip().str.lower().eq('standard').fillna(False)
+    if standard_zip_mask.any():
+        zip_gdf = zip_gdf.loc[standard_zip_mask].copy()
+modeled_zip_codes = set(station_reference['ZIP_CODE'].dropna().astype(str))
+app_zip_gdf = zip_gdf.loc[zip_gdf['ZIP_CODE'].astype(str).isin(modeled_zip_codes), ['ZIP_CODE', 'geometry']].dissolve(by='ZIP_CODE', as_index=False).sort_values('ZIP_CODE').reset_index(drop=True)
+simulation_required_columns = ['time', 'time_end', 'short_name', 'station_name', 'capacity', 'start_inventory', 'rebalance_delta', 'inventory_after_rebalancing', 'requested_departures', 'served_departures', 'unmet_departures', 'requested_arrivals', 'accepted_arrivals', 'blocked_arrivals', 'end_inventory']
+
+def prepare_policy_simulation(simulation, policy_key, policy_label):
+    missing_columns = [column for column in simulation_required_columns if column not in simulation.columns]
+    if len(missing_columns) > 0:
+        raise ValueError(f'{policy_label} simulation is missing: ' + ', '.join(missing_columns))
+    result = simulation[simulation_required_columns].copy()
+    result['short_name'] = result['short_name'].astype('string')
+    result = result.merge(station_reference[['short_name', 'lat', 'lon', 'ZIP_CODE']], on='short_name', how='inner', validate='many_to_one')
+    result['policy_key'] = policy_key
+    result['policy_label'] = policy_label
+    result['station_event_failures'] = result['unmet_departures'] + result['blocked_arrivals']
+    result['requested_station_events'] = result['requested_departures'] + result['requested_arrivals']
+    result['served_station_events'] = result['served_departures'] + result['accepted_arrivals']
+    result['start_fill_ratio'] = result['start_inventory'] / result['capacity']
+    result['post_rebalance_fill_ratio'] = result['inventory_after_rebalancing'] / result['capacity']
+    result['end_fill_ratio'] = result['end_inventory'] / result['capacity']
+    result['time_key'] = result['time'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+    result['time_label'] = result['time'].dt.strftime('%H:%M') + '–' + result['time_end'].dt.strftime('%H:%M')
+    return result.sort_values(['time', 'short_name']).reset_index(drop=True)
+app_baseline = prepare_policy_simulation(baseline_simulation, policy_key='baseline', policy_label='No rebalancing')
+app_heuristic = prepare_policy_simulation(heuristic_simulation, policy_key='heuristic', policy_label='Reactive heuristic')
+app_lp = prepare_policy_simulation(optimized_simulation, policy_key='lp', policy_label='LP optimization')
+app_simulation = pd.concat([app_baseline, app_heuristic, app_lp], ignore_index=True)
+# Verify complete full-day coverage before embedding any dashboard data.
+_expected_day = pd.Timestamp(_dashboard_manifest["scenario_date"])
+_expected_times = pd.date_range(start=_expected_day, periods=24, freq="h")
+_expected_ids = sorted(station_reference["short_name"].astype(str).tolist())
+_expected_index = pd.MultiIndex.from_product(
+    [_expected_times, _expected_ids], names=["time", "short_name"]
+)
+for _policy, _frame in app_simulation.groupby("policy_key"):
+    _actual_index = pd.MultiIndex.from_frame(_frame[["time", "short_name"]])
+    if (_actual_index.has_duplicates
+            or len(_actual_index.difference(_expected_index))
+            or len(_expected_index.difference(_actual_index))):
+        raise ValueError(f"{_policy}: incomplete or mismatched full-day station-time data.")
+    if not (_frame["time_end"] - _frame["time"]).eq(pd.Timedelta(hours=1)).all():
+        raise ValueError(f"{_policy}: intervals must be exactly one hour.")
+# Keep the data timestamp at next-day midnight; change only the visible label.
+_last_hour = app_simulation["time_end"].eq(_expected_day + pd.Timedelta(days=1))
+app_simulation.loc[_last_hour, "time_label"] = "23:00–24:00"
+
+station_lookup = station_reference.set_index('short_name')
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    earth_radius_km = 6371.0088
+    lat1 = np.radians(lat1)
+    lon1 = np.radians(lon1)
+    lat2 = np.radians(lat2)
+    lon2 = np.radians(lon2)
+    delta_lat = lat2 - lat1
+    delta_lon = lon2 - lon1
+    a = np.sin(delta_lat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(delta_lon / 2) ** 2
+    return 2 * earth_radius_km * np.arcsin(np.sqrt(np.clip(a, 0, 1)))
+
+def prepare_transfer_data(transfers, policy_key, policy_label):
+    if transfers is None or len(transfers) == 0:
+        return pd.DataFrame(columns=['time', 'time_key', 'time_label', 'policy_key', 'policy_label', 'from_short_name', 'to_short_name', 'from_station', 'to_station', 'from_lat', 'from_lon', 'to_lat', 'to_lon', 'from_zip', 'to_zip', 'distance_km', 'bikes', 'bike_km'])
+    result = transfers.copy()
+    result['from_short_name'] = result['from_short_name'].astype('string')
+    result['to_short_name'] = result['to_short_name'].astype('string')
+    result['from_station'] = result['from_short_name'].map(station_lookup['name'])
+    result['to_station'] = result['to_short_name'].map(station_lookup['name'])
+    result['from_lat'] = result['from_short_name'].map(station_lookup['lat'])
+    result['from_lon'] = result['from_short_name'].map(station_lookup['lon'])
+    result['to_lat'] = result['to_short_name'].map(station_lookup['lat'])
+    result['to_lon'] = result['to_short_name'].map(station_lookup['lon'])
+    result['from_zip'] = result['from_short_name'].map(station_lookup['ZIP_CODE'])
+    result['to_zip'] = result['to_short_name'].map(station_lookup['ZIP_CODE'])
+    if 'distance_km' not in result.columns:
+        result['distance_km'] = haversine_distance(result['from_lat'], result['from_lon'], result['to_lat'], result['to_lon'])
+    if 'bike_km' not in result.columns:
+        result['bike_km'] = result['bikes'] * result['distance_km']
+    result['policy_key'] = policy_key
+    result['policy_label'] = policy_label
+    result['time'] = pd.to_datetime(result['time'])
+    result['time_key'] = result['time'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+    result['time_label'] = result['time'].dt.strftime('%H:%M') + '–' + (result['time'] + pd.Timedelta(hours=1)).dt.strftime('%H:%M')
+    return result.sort_values(['time', 'bikes'], ascending=[True, False]).reset_index(drop=True)
+app_heuristic_transfers = prepare_transfer_data(heuristic_transfers, policy_key='heuristic', policy_label='Reactive heuristic')
+app_lp_transfers = prepare_transfer_data(optimized_transfers, policy_key='lp', policy_label='LP optimization')
+app_transfers = pd.concat([app_heuristic_transfers, app_lp_transfers], ignore_index=True)
+app_time_table = app_simulation[['time', 'time_key', 'time_label']].drop_duplicates().sort_values('time').reset_index(drop=True)
+app_zip_table = station_reference.groupby('ZIP_CODE', as_index=False).agg(stations=('short_name', 'nunique')).sort_values('ZIP_CODE').reset_index(drop=True)
+app_data_audit = pd.DataFrame({'Component': ['Modeled stations', 'ZIP codes', 'Modeled intervals', 'Policy scenarios', 'Simulation records', 'Heuristic transfer rows', 'LP transfer rows', 'Budget-sensitivity scenarios'], 'Value': [station_reference['short_name'].nunique(), app_zip_table['ZIP_CODE'].nunique(), app_time_table['time_key'].nunique(), app_simulation['policy_key'].nunique(), len(app_simulation), len(app_heuristic_transfers), len(app_lp_transfers), len(budget_sensitivity)]})
+```
+
+```{python}
+#| label: dashboard-data-payload
+#| echo: false
+# Build a compact, portable model-data payload consumed by the browser.
+_dashboard_fields = [
+    'time_key', 'time_label', 'short_name', 'station_name', 'capacity',
+    'lat', 'lon', 'ZIP_CODE', 'policy_key', 'policy_label',
+    'start_inventory', 'inventory_after_rebalancing', 'end_inventory',
+    'requested_departures', 'served_departures', 'unmet_departures',
+    'requested_arrivals', 'accepted_arrivals', 'blocked_arrivals',
+    'station_event_failures', 'requested_station_events', 'served_station_events',
+]
+_transfer_fields = [
+    'time_key', 'time_label', 'policy_key', 'from_short_name', 'to_short_name',
+    'from_station', 'to_station', 'from_lat', 'from_lon', 'to_lat', 'to_lon',
+    'from_zip', 'to_zip', 'distance_km', 'bikes', 'bike_km',
+]
+_reference_fields = ['short_name', 'name', 'ZIP_CODE', 'lat', 'lon', 'capacity']
+_dashboard_payload = {
+    'stations': json.loads(station_reference[_reference_fields].to_json(orient='records')),
+    'simulations': json.loads(app_simulation[_dashboard_fields].to_json(orient='records')),
+    'transfers': json.loads(app_transfers[_transfer_fields].to_json(orient='records')),
+    'zip_geo': json.loads(app_zip_gdf[['ZIP_CODE', 'geometry']].to_json()),
+    'times': json.loads(app_time_table[['time_key', 'time_label']].to_json(orient='records')),
+    'budget': json.loads(budget_sensitivity.to_json(orient='records')),
+    'budget_columns': list(budget_sensitivity.columns),
+}
+_safe_json = json.dumps(_dashboard_payload, ensure_ascii=False, allow_nan=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+display(HTML('<script type="application/json" id="cb-dashboard-json">' + _safe_json + '</script>'))
+```
+
+```{=html}
+<!--| quarto-html-table-processing: none -->
+<link rel="stylesheet" href="assets/leaflet/leaflet.css">
+<script>
+window.__cbLeafletAMDState = {
+  loader: window.define,
+  amd: typeof window.define === "function" ? window.define.amd : undefined
+};
+if (window.__cbLeafletAMDState.amd) {
+  window.__cbLeafletAMDState.loader.amd = false;
+}
+</script>
+<script src="assets/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  const saved = window.__cbLeafletAMDState;
+  if (saved && saved.amd) saved.loader.amd = saved.amd;
+  delete window.__cbLeafletAMDState;
+})();
+</script>
+
+<div id="cb-app">
+  <header class="cb-top">
+  <div class="cb-heading-main">
+    <div class="cb-eyebrow">Capital Bikeshare / Scenario Explorer</div>
+    <h1 class="cb-title">Rebalancing Decision Support</h1>
+    <p class="cb-subtitle cb-instructions">
+      Compare how rebalancing strategies affect bike availability and service failures.
+      Choose a policy, drag the hourly slider, and tick ZIP codes or click areas on the map to filter the view.
+      Click a station for details. Results are simulated scenarios, not real-time observations.
+    </p>
+  </div>
+  <div class="cb-top-right">Washington, DC · <span id="cb-header-sub">Full-day scenario</span></div>
+</header>
+
+  <div class="cb-summary">
+    <div class="cb-panel cb-stat"><div class="label">Modeled stations</div><div class="value" id="cb-n-stations">—</div><div class="hint">DC model scope</div></div>
+    <div class="cb-panel cb-stat"><div class="label">ZIP areas</div><div class="value" id="cb-n-zips">—</div><div class="hint">With modeled stations</div></div>
+    <div class="cb-panel cb-stat"><div class="label">Modeled intervals</div><div class="value" id="cb-n-times">—</div><div class="hint">Scenario time windows</div></div>
+    <div class="cb-panel cb-stat"><div class="label">Policy scenarios</div><div class="value" id="cb-n-policies">3</div><div class="hint">Baseline · Heuristic · LP</div></div>
+  </div>
+
+  <div class="cb-workspace">
+    <div class="cb-panel cb-sidebar">
+      <div class="cb-sidebar-head"><h2 class="cb-panel-title">Scenario Controls</h2><div class="cb-panel-caption">Adjust the view; maps and metrics update together.</div></div>
+      <div class="cb-group"><div class="cb-control-label">Rebalancing policy</div>
+        <div class="cb-policy" id="cb-policy-choice">
+          <label><input type="radio" name="cb-policy" value="baseline"><span><i style="background:#97a5b3"></i>No rebalancing</span></label>
+          <label><input type="radio" name="cb-policy" value="heuristic"><span><i style="background:#dc9a31"></i>Reactive heuristic</span></label>
+          <label><input type="radio" name="cb-policy" value="lp" checked><span><i style="background:#2e79af"></i>LP optimization</span></label>
+        </div>
+      </div>
+      <div class="cb-group"><label class="cb-control-label" for="cb-time-choice">Time interval</label><select class="cb-select" id="cb-time-choice"></select></div>
+      <div class="cb-group"><div class="cb-control-label">Geographic filter</div>
+        <div class="cb-zip-head"><span class="cb-zip-count" id="cb-zip-count">All ZIP areas</span><div class="cb-zip-tools"><button type="button" class="cb-button" id="cb-zip-all">All</button><button type="button" class="cb-button" id="cb-zip-none">Clear</button></div></div>
+        <input class="cb-search" type="search" id="cb-zip-search" placeholder="Search ZIP code…" aria-label="Search ZIP codes">
+        <div class="cb-zip-items" id="cb-zip-items"></div>
+      </div>
+      <div class="cb-group"><label class="cb-control-label" for="cb-state-choice">Inventory snapshot</label>
+        <select class="cb-select" id="cb-state-choice">
+          <option value="start_inventory">Start of interval</option>
+          <option value="inventory_after_rebalancing" selected>After rebalancing</option>
+          <option value="end_inventory">End of interval</option>
+        </select>
+      </div>
+      <div class="cb-group"><label class="cb-control-label" for="cb-map-metric">Map color represents</label>
+        <select class="cb-select" id="cb-map-metric">
+          <option value="fill" selected>Inventory fill ratio</option>
+          <option value="failures">Service failures</option>
+          <option value="unmet">Unmet departures</option>
+          <option value="blocked">Blocked arrivals</option>
+        </select>
+      </div>
+      <div class="cb-group"><div class="cb-control-label">Map layers</div>
+        <label class="cb-check-line"><input id="cb-show-zips" type="checkbox" checked> ZIP boundaries (click to filter)</label>
+        <label class="cb-check-line"><input id="cb-show-transfers" type="checkbox" checked> Rebalancing transfers</label>
+      </div>
+      <div class="cb-button-row"><button type="button" class="cb-button primary" id="cb-reset">Reset filters</button><button type="button" class="cb-button" id="cb-export">Export view CSV</button></div>
+    </div>
+
+    <div class="cb-map-column">
+      <section class="cb-panel cb-map-area">
+        <div class="cb-map-header"><div><h2 class="cb-panel-title">Interactive System Map</h2><div class="cb-panel-caption" id="cb-map-description">Stations, neighborhood ZIP areas and relocation corridors</div></div><div class="cb-map-actions"><button class="cb-button" type="button" id="cb-zoom">Zoom to selection</button></div></div>
+        <div id="cb-map"><div class="cb-map-fallback">Loading geographic layers…</div></div>
+        <div class="cb-map-foot"><div id="cb-map-legend" class="cb-legend"></div><div>Dots = stations · Lines = modeled transfers · Click a station for details</div></div>
+      </section>
+
+      <section class="cb-kpi-grid" aria-label="Decision metrics">
+        <div class="cb-panel cb-kpi"><div class="label">Selected stations</div><div class="value" id="cb-k-stations">—</div><div class="hint">Within ZIP selection</div></div>
+        <div class="cb-panel cb-kpi"><div class="label">Requested station events</div><div class="value" id="cb-k-demand">—</div><div class="hint">Departures + arrivals</div></div>
+        <div class="cb-panel cb-kpi"><div class="label">Station-event success</div><div class="value" id="cb-k-success">—</div><div class="hint">Served / requested</div></div>
+        <div class="cb-panel cb-kpi"><div class="label">Total service failures</div><div class="value" id="cb-k-fail">—</div><div class="hint">Unmet + blocked</div></div>
+        <div class="cb-panel cb-kpi"><div class="label">Unmet departures</div><div class="value" id="cb-k-unmet">—</div><div class="hint">Modeled stockouts</div></div>
+        <div class="cb-panel cb-kpi"><div class="label">Blocked arrivals</div><div class="value" id="cb-k-blocked">—</div><div class="hint">Modeled full-dock events</div></div>
+        <div class="cb-panel cb-kpi"><div class="label">Bikes rebalanced</div><div class="value" id="cb-k-bikes">—</div><div class="hint">Routes touching selection</div></div>
+        <div class="cb-panel cb-kpi"><div class="label">Relocation bike-km</div><div class="value" id="cb-k-bike-km">—</div><div class="hint">Distance-weighted bike movement</div></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="cb-split">
+    <section class="cb-panel cb-detail-panel"><div class="cb-section-head"><div><h2 class="cb-panel-title">Policy Comparison</h2><small>Failures across the selected ZIPs and time window</small></div></div><div id="cb-policy-chart"></div><div class="cb-mini-note"><i class="cb-key" style="background:#e49b49"></i>Unmet departures &nbsp;&nbsp; <i class="cb-key" style="background:#c95257"></i>Blocked arrivals</div><div id="cb-policy-foot" class="cb-mini-note"></div></section>
+    <section class="cb-panel cb-detail-panel"><div class="cb-section-head"><div><h2 class="cb-panel-title">Time-Interval Performance</h2><small>Failures by policy · click a time group to filter</small></div></div><div id="cb-time-chart" class="cb-chart-outer"></div><div class="cb-mini-note"><i class="cb-key" style="background:#97a5b3"></i>Baseline &nbsp;&nbsp;<i class="cb-key" style="background:#dfa344"></i>Heuristic &nbsp;&nbsp;<i class="cb-key" style="background:#357cac"></i>LP</div></section>
+  </div>
+
+  <div class="cb-split">
+    <section class="cb-panel cb-detail-panel"><div class="cb-section-head"><div><h2 class="cb-panel-title">Station-Level Pressure</h2><small>Highest modeled service failures, then demand</small></div></div><div id="cb-station-table" class="cb-table-scroll"></div></section>
+    <section class="cb-panel cb-detail-panel"><div class="cb-section-head"><div><h2 class="cb-panel-title">Major Relocation Corridors</h2><small>Largest transfers intersecting selected ZIP areas</small></div></div><div id="cb-transfer-table" class="cb-table-scroll"></div></section>
+  </div>
+
+  <div class="cb-split">
+    <section class="cb-panel cb-detail-panel"><div class="cb-section-head"><div><h2 class="cb-panel-title">LP Budget Sensitivity</h2><small>Precomputed model scenarios · no new optimization is performed</small></div></div><div id="cb-budget-chart"></div><div id="cb-budget-info" class="cb-mini-note"></div></section>
+    <section class="cb-panel cb-detail-panel"><div class="cb-section-head"><div><h2 class="cb-panel-title">Sensitivity Scenario Data</h2><small>Underlying optimization results, as saved in the analysis</small></div></div><div id="cb-budget-table" class="cb-table-scroll"></div></section>
+  </div>
+
+  <footer class="cb-bottom"><div><strong>Interpretation:</strong> Simulated inventory states and service failures are model outputs, not observed historical failures. Historical trip records inform the scenario demand. The saved per-station initial allocation is applied once at midnight as an assumption. LP uses the full day's known scenario demand; it is not live forecasting. A ZIP-filtered transfer is counted once when either endpoint lies within the selection.</div><div>Capital Bikeshare · January 2025</div></footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function start() {
+    const $ = id => document.getElementById(id);
+    const node = $('cb-dashboard-json');
+    if (!node) { $('cb-map').textContent = 'Dashboard data was not embedded during Quarto rendering.'; return; }
+    let D;
+    try { D = JSON.parse(node.textContent); } catch (error) { $('cb-map').textContent = 'Could not read embedded dashboard data.'; console.error(error); return; }
+    const POLICIES = [
+      {key:'baseline', name:'No rebalancing', short:'Baseline', color:'#97a5b3'},
+      {key:'heuristic', name:'Reactive heuristic', short:'Heuristic', color:'#dfa344'},
+      {key:'lp', name:'LP optimization', short:'LP', color:'#357cac'}
+    ];
+    const fmt = value => new Intl.NumberFormat('en-US', {maximumFractionDigits:6}).format(Number(value) || 0);
+    const dec = (value, digits=1) => Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : '—';
+    const safe = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const num = value => Number(value) || 0;
+    const sum = (items, field) => items.reduce((a,r) => a + num(r[field]), 0);
+    const zips = [...new Set((D.stations || []).map(r => String(r.ZIP_CODE)))].sort();
+    const times = D.times || [];
+    const defaultTime = times.find(t => t.time_key.slice(11,13) === '16')?.time_key || times[0]?.time_key || 'all';
+    const S = {policy:'lp', time:defaultTime, zips:new Set(zips), snapshot:'inventory_after_rebalancing', metric:'fill', showZips:true, showTransfers:true};
+    const stationMap = new Map((D.stations || []).map(r => [String(r.short_name),r]));
+    const C = Object.fromEntries(POLICIES.map(p => [p.key,p.color]));
+    let map = null, zipLayer = null, stationsLayer = null, transferLayer = null, allBounds = null;
+    function zipRows() { return (D.simulations || []).filter(r => S.zips.has(String(r.ZIP_CODE)) && (S.time === 'all' || r.time_key === S.time)); }
+    function policyRows(key=S.policy) { return zipRows().filter(r => r.policy_key === key); }
+    function routeRows(key=S.policy, time=S.time) {
+      return (D.transfers || []).filter(r => r.policy_key === key && (time === 'all' || r.time_key === time) && (S.zips.has(String(r.from_zip)) || S.zips.has(String(r.to_zip))));
+    }
+    function aggregateStation(rows) {
+      const items = new Map();
+      for (const r of rows) {
+        const k = String(r.short_name);
+        if (!items.has(k)) items.set(k,{...r, intervals:0, station_event_failures:0, requested_station_events:0, served_station_events:0, unmet_departures:0, blocked_arrivals:0, start_inventory:0, inventory_after_rebalancing:0, end_inventory:0});
+        const a = items.get(k);
+        a.intervals++;
+        for (const field of ['station_event_failures','requested_station_events','served_station_events','unmet_departures','blocked_arrivals','start_inventory','inventory_after_rebalancing','end_inventory']) a[field] += num(r[field]);
+      }
+      for (const a of items.values()) {
+        for (const field of ['start_inventory','inventory_after_rebalancing','end_inventory']) a[field] /= a.intervals;
+      }
+      return [...items.values()];
+    }
+    function timeDescription() { return S.time === 'all' ? `All ${times.length} modeled intervals` : (times.find(t => t.time_key === S.time)?.time_label || S.time); }
+    function countUpdate() {
+      $('cb-n-stations').textContent=fmt((D.stations||[]).length);
+      $('cb-n-zips').textContent=fmt(zips.length);
+      $('cb-n-times').textContent=fmt(times.length);
+      $('cb-n-policies').textContent=fmt(POLICIES.length);
+      $('cb-header-sub').textContent=`${times[0]?.time_key.slice(0,10) || ''} · ${times.length} modeled hourly intervals`;
+    }
+    function drawZipPicker() {
+      const q = $('cb-zip-search').value.trim();
+      $('cb-zip-count').textContent=`${S.zips.size} of ${zips.length} ZIPs selected`;
+      $('cb-zip-items').innerHTML=zips.filter(z => !q || z.includes(q)).map(z => `<label class="cb-zip-item"><input type="checkbox" data-zip="${safe(z)}" ${S.zips.has(z) ? 'checked' : ''}>${safe(z)}</label>`).join('') || '<div class="cb-empty">No matching ZIPs</div>';
+      $('cb-zip-items').querySelectorAll('[data-zip]').forEach(input => input.addEventListener('change', () => {const z=input.dataset.zip;input.checked?S.zips.add(z):S.zips.delete(z);drawZipPicker();updateAll();}));
+    }
+    function fillClass(row) {
+      const capacity = num(row.capacity);
+      const ratio = capacity > 0 ? num(row[S.snapshot])/capacity : null;
+      if (ratio == null) return '#8394a5';
+      if (ratio < .15) return '#cb4958';
+      if (ratio < .35) return '#ecad43';
+      if (ratio < .80) return '#1c958e';
+      if (ratio < .95) return '#377bab';
+      return '#7d57a4';
+    }
+    // Zero-event stations remain easy to locate, using a distinct color for
+    // each policy. Warm colors are reserved for actual service failures.
+    function zeroEventColor() {
+      return {lp:'#eab308', heuristic:'#0f766e', baseline:'#64748b'}[S.policy];
+    }
+    function metricField() {
+      return {failures:'station_event_failures', unmet:'unmet_departures', blocked:'blocked_arrivals'}[S.metric] || 'station_event_failures';
+    }
+    function metricValue(row) { return num(row[metricField()]); }
+    function stationColor(row) {
+      if (S.metric === 'fill') return fillClass(row);
+      const v = metricValue(row);
+      if (v <= 0) return zeroEventColor(); // Zero events, shown in policy color
+      if (v < 2) return '#f97316';          // Exactly 1 event
+      if (v < 4) return '#ef4444';          // 2–3 events
+      return '#b91c1c';                    // 4+ events
+    }
+    function drawLegend() {
+      const policyName = {lp:'LP', heuristic:'Heuristic', baseline:'Baseline'}[S.policy];
+      const values = S.metric === 'fill'
+        ? [['#cb4958','<15%'],['#ecad43','15–35%'],['#1c958e','35–80%'],['#377bab','80–95%'],['#7d57a4','≥95%']]
+        : [[zeroEventColor(),`0 events (${policyName})`],['#f97316','1 event'],['#ef4444','2–3'],['#b91c1c','4+']];
+      $('cb-map-legend').innerHTML=values.map(([color,label])=>`<span class="cb-legend-item"><i style="background:${color}"></i>${label}</span>`).join('');
+    }
+    function popupHtml(r) {
+      return `<b>${safe(r.station_name || stationMap.get(String(r.short_name))?.name || r.short_name)}</b><br>ZIP ${safe(r.ZIP_CODE)} · Capacity ${fmt(r.capacity)}<br>Snapshot inventory: ${fmt(r[S.snapshot])} / ${fmt(r.capacity)}${S.time==='all'?' (mean)':''}<br>Requested events: ${fmt(r.requested_station_events)}<br>Unmet departures: ${fmt(r.unmet_departures)}<br>Blocked arrivals: ${fmt(r.blocked_arrivals)}<br>Total service failures: ${fmt(r.station_event_failures)}`;
+    }
+    function initMap() {
+      if (typeof window.L === 'undefined') { $('cb-map').innerHTML='<div class="cb-map-fallback">Leaflet did not initialize. Check the local assets/leaflet files and the AMD-loading guard. Other dashboard controls and metrics remain available.</div>';return; }
+      $('cb-map').textContent='';
+      map=L.map('cb-map', {
+        preferCanvas: true,
+        zoomControl: false,
+        scrollWheelZoom: true,
+        maxZoom: 18,
+        maxBoundsViscosity: 1.0,
+        inertia: false,
+        bounceAtZoomLimits: false,
+        worldCopyJump: false
+      }).setView([38.903,-77.032],12);
+      L.control.zoom({position:'bottomright'}).addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',maxZoom:18, noWrap:true}).addTo(map);
+      zipLayer=L.geoJSON(D.zip_geo || {type:'FeatureCollection',features:[]},{
+        style:f=>({color:S.zips.has(String(f.properties.ZIP_CODE))?'#3e719b':'#93a4b4',weight:1.25,fillColor:'#93bad7',fillOpacity:S.zips.has(String(f.properties.ZIP_CODE))?.09:.015,opacity:.85}),
+        onEachFeature:(f,layer)=>{const z=String(f.properties.ZIP_CODE);layer.bindTooltip(`ZIP ${z}`,{sticky:true});layer.on('click',()=>{S.zips.has(z)?S.zips.delete(z):S.zips.add(z);drawZipPicker();updateAll();});}
+      });
+      transferLayer=L.layerGroup().addTo(map);
+      stationsLayer=L.layerGroup().addTo(map);
+      if(S.showZips) zipLayer.addTo(map);
+      const p=(D.stations || []).filter(s=>Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lon))).map(s=>[num(s.lat),num(s.lon)]);
+      if (p.length) {
+        allBounds = L.latLngBounds(p);
+        // Use ALL modeled stations, not the current ZIP/time selection.
+        const overviewBounds = allBounds.pad(0.08);
+
+        function constrainMapView(resetToOverview = false) {
+          const size = map.getSize();
+          if (size.x <= 0 || size.y <= 0) return;
+          const wasAtOverview = resetToOverview ||
+            map.getZoom() <= map.getMinZoom() + 1e-8;
+
+          // Calculate the overview zoom without reusing a previous minZoom.
+          // This allows the limits to adapt when the map panel is resized.
+          const nw = map.project(overviewBounds.getNorthWest(), 0);
+          const se = map.project(overviewBounds.getSouthEast(), 0);
+          const span = se.subtract(nw);
+          const scale = Math.min(
+            size.x / Math.max(span.x, 1e-9),
+            size.y / Math.max(span.y, 1e-9)
+          );
+          const overviewZoom = Math.max(0, Math.min(
+            map.getMaxZoom(), Math.floor(map.getScaleZoom(scale, 0))
+          ));
+          const overviewCenter = map.unproject(nw.add(se).divideBy(2), 0);
+
+          // The allowed region is the initial full-network viewport, with
+          // a two-pixel margin to avoid rounding jitter at its edges.
+          // It is NOT recomputed when users pan, zoom, or filter the data.
+          const pixelCenter = map.project(overviewCenter, overviewZoom);
+          const halfView = size.divideBy(2).add(L.point(2, 2));
+          const allowedBounds = L.latLngBounds(
+            map.unproject(pixelCenter.subtract(halfView), overviewZoom),
+            map.unproject(pixelCenter.add(halfView), overviewZoom)
+          );
+
+          map.setMinZoom(overviewZoom);
+          map.setMaxBounds(allowedBounds);
+          if (wasAtOverview) {
+            map.setView(overviewCenter, overviewZoom, {animate: false});
+          }
+          map.panInsideBounds(allowedBounds, {animate: false});
+        }
+
+        constrainMapView(true);
+        map.on('resize', () => constrainMapView());
+
+        // Also handle container resizing caused by the responsive layout.
+        if (typeof ResizeObserver !== 'undefined') {
+          let resizeFrame = null;
+          const observer = new ResizeObserver(() => {
+            if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+            resizeFrame = requestAnimationFrame(() => {
+              resizeFrame = null;
+              map.invalidateSize({animate: false, pan: false});
+            });
+          });
+          observer.observe($('cb-map'));
+          map.on('unload', () => {
+            observer.disconnect();
+            if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+          });
+        }
+      }
+      setTimeout(() => map.invalidateSize({animate: false, pan: false}), 100);
+    }
+    function zoomSelection() {
+      if(!map)return;
+      const selected=(D.stations||[]).filter(s=>S.zips.has(String(s.ZIP_CODE))&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))).map(s=>[num(s.lat),num(s.lon)]);
+      if(selected.length)map.fitBounds(L.latLngBounds(selected).pad(.14),{maxZoom:14});
+      else if(allBounds)map.fitBounds(allBounds.pad(.08));
+    }
+    function drawMap() {
+      const rows=aggregateStation(policyRows());
+      const policyName = POLICIES.find(p=>p.key===S.policy)?.name;
+      const eventLabels = {failures:'Service failures',unmet:'Unmet departures',blocked:'Blocked arrivals'};
+      const eventCount = S.metric === 'fill' ? 0 : sum(rows,metricField());
+      const affectedStations = S.metric === 'fill' ? 0 : rows.filter(r=>metricValue(r)>0).length;
+      const metricSummary = S.metric === 'fill'
+        ? 'Inventory fill ratio'
+        : `${eventLabels[S.metric]}: ${fmt(eventCount)} events at ${fmt(affectedStations)} stations`;
+      $('cb-map-description').textContent=`${policyName} · ${timeDescription()} · ${rows.length} stations · ${metricSummary}`;
+      drawLegend();
+      if(!map)return;
+      if(S.showZips && !map.hasLayer(zipLayer))map.addLayer(zipLayer);
+      if(!S.showZips && map.hasLayer(zipLayer))map.removeLayer(zipLayer);
+      zipLayer.eachLayer(layer=>layer.setStyle({color:S.zips.has(String(layer.feature.properties.ZIP_CODE))?'#3e719b':'#93a4b4',fillOpacity:S.zips.has(String(layer.feature.properties.ZIP_CODE))?.09:.015}));
+      stationsLayer.clearLayers();transferLayer.clearLayers();
+      if (S.showTransfers) for(const tr of routeRows()) {
+        const a=[Number(tr.from_lat),Number(tr.from_lon)],b=[Number(tr.to_lat),Number(tr.to_lon)];
+        if(![...a,...b].every(Number.isFinite))continue;
+        L.polyline([a,b],{color:S.policy==='lp'?'#3869b5':'#d78b31',weight:Math.min(6,1.7+num(tr.bikes)*.55),opacity:.64,dashArray:S.policy==='heuristic'?'6 5':null})
+          .bindPopup(`<b>${safe(tr.from_station)} → ${safe(tr.to_station)}</b><br>${fmt(tr.bikes)} bikes · ${dec(tr.distance_km,2)} km<br>${safe(tr.time_label||'')}`)
+          .addTo(transferLayer);
+      }
+      // Draw high-risk stations LAST, so non-zero results are not obscured
+      // by many other markers in dense parts of Washington, DC.
+      const ordered = S.metric === 'fill'
+        ? rows : [...rows].sort((a,b)=>metricValue(a)-metricValue(b));
+      for(const row of ordered) {
+        const lat=Number(row.lat),lon=Number(row.lon);
+        if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;
+        const eventCount = metricValue(row);
+        const active = eventCount > 0;
+        const markerStyle = S.metric === 'fill'
+          ? {radius:5.1,weight:1.2,color:'#fff',opacity:.96,fillColor:stationColor(row),fillOpacity:.92}
+          : {radius:active?6.3+Math.min(3.5,Math.sqrt(eventCount)*1.1):5.5,
+             weight:active?1.5:1.3,
+             color:active?'#fff':(S.policy==='lp'?'#854d0e':'#fff'),
+             opacity:1,fillColor:stationColor(row),fillOpacity:active?1:.96};
+        L.circleMarker([lat,lon],markerStyle)
+          .bindPopup(popupHtml(row),{maxWidth:270})
+          .addTo(stationsLayer);
+      }
+    }
+    function drawKpis() {
+      const rows=policyRows(), routes=routeRows(), unique=new Set(rows.map(r=>String(r.short_name)));
+      const requested=sum(rows,'requested_station_events'),served=sum(rows,'served_station_events');
+      const fieldMap={'cb-k-stations':fmt(unique.size),'cb-k-demand':fmt(requested),'cb-k-success':requested?`${dec(100*served/requested,1)}%`:'—','cb-k-fail':fmt(sum(rows,'station_event_failures')),'cb-k-unmet':fmt(sum(rows,'unmet_departures')),'cb-k-blocked':fmt(sum(rows,'blocked_arrivals')),'cb-k-bikes':fmt(sum(routes,'bikes')),'cb-k-bike-km':dec(sum(routes,'bike_km'),1)};
+      for(const [id,v] of Object.entries(fieldMap)) $(id).textContent=v;
+    }
+    function drawPolicyChart() {
+      const groups=POLICIES.map(p=>{const rows=policyRows(p.key);return {...p,unmet:sum(rows,'unmet_departures'),blocked:sum(rows,'blocked_arrivals'),asked:sum(rows,'requested_station_events'),served:sum(rows,'served_station_events')};});
+      const max=Math.max(1,...groups.map(p=>p.unmet+p.blocked));
+      $('cb-policy-chart').innerHTML=groups.map(p=>`<div class="cb-policy-row" title="${safe(p.name)} — ${fmt(p.unmet+p.blocked)} service failures"><div class="cb-policy-name" style="${p.key===S.policy?'color:#204d78':''}">${safe(p.name)}${p.key===S.policy?' ◂':''}</div><div class="cb-policy-bar-track"><div style="width:${(p.unmet/max*100).toFixed(2)}%;background:#e49b49"></div><div style="width:${(p.blocked/max*100).toFixed(2)}%;background:#c95257"></div></div><div class="cb-policy-num">${fmt(p.unmet+p.blocked)}</div></div>`).join('');
+      $('cb-policy-foot').textContent=groups.map(p=>`${p.short}: ${p.asked?dec(p.served/p.asked*100,1)+'%':'—'} success`).join('   ·   ');
+    }
+    function drawTimeTrend() {
+      const max=Math.max(1,...times.flatMap(t=>POLICIES.map(p=>sum((D.simulations||[]).filter(r=>r.time_key===t.time_key && r.policy_key===p.key && S.zips.has(String(r.ZIP_CODE))),'station_event_failures'))));
+      $('cb-time-chart').innerHTML=`<div class="cb-trend">${times.map(t=>`<div class="cb-time-group ${S.time===t.time_key?'selected':''}" data-time="${safe(t.time_key)}" title="Select ${safe(t.time_label)}">${POLICIES.map(p=>{const v=sum((D.simulations||[]).filter(r=>r.time_key===t.time_key && r.policy_key===p.key && S.zips.has(String(r.ZIP_CODE))),'station_event_failures');return `<div class="cb-time-bar" style="height:${Math.max(v?2:0,v/max*145).toFixed(1)}px;background:${p.color}" title="${safe(p.name)}: ${fmt(v)} failures"></div>`}).join('')}<span class="cb-time-label">${safe(t.time_label)}</span></div>`).join('')}</div>`;
+      $('cb-time-chart').querySelectorAll('[data-time]').forEach(el=>el.addEventListener('click',()=>{S.time=el.dataset.time;$('cb-time-choice').value=S.time;updateAll();}));
+    }
+    function drawStationTable() {
+      const rows=aggregateStation(policyRows()).sort((a,b)=>num(b.station_event_failures)-num(a.station_event_failures)||num(b.requested_station_events)-num(a.requested_station_events)).slice(0,9);
+      if(!rows.length){$('cb-station-table').innerHTML='<div class="cb-empty">Select at least one ZIP code to see station results.</div>';return;}
+      $('cb-station-table').innerHTML=`<table class="cb-table"><thead><tr><th>Station</th><th>ZIP</th><th class="num">Events</th><th class="num">Fails</th><th class="num">Fill</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="station-name">${safe(r.station_name||r.short_name)}</td><td>${safe(r.ZIP_CODE)}</td><td class="num">${fmt(r.requested_station_events)}</td><td class="num">${fmt(r.station_event_failures)}</td><td class="num">${num(r.capacity)?dec(100*num(r[S.snapshot])/num(r.capacity),0)+'%':'—'}</td></tr>`).join('')}</tbody></table>`;
+    }
+    function drawTransferTable() {
+      const rows=routeRows().sort((a,b)=>num(b.bikes)-num(a.bikes)||num(b.bike_km)-num(a.bike_km)).slice(0,9);
+      if(!rows.length){$('cb-transfer-table').innerHTML='<div class="cb-empty">No modeled relocation corridors for the current selection.</div>';return;}
+      $('cb-transfer-table').innerHTML=`<table class="cb-table"><thead><tr><th>From → To</th><th class="num">Bikes</th><th class="num">km</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="station-name">${safe(r.from_station||r.from_short_name)}<br><span class="cb-muted">→ ${safe(r.to_station||r.to_short_name)}</span></td><td class="num">${fmt(r.bikes)}</td><td class="num">${dec(r.distance_km,2)}</td></tr>`).join('')}</tbody></table>`;
+    }
+    function readableColumn(key) {return String(key).replace(/_/g,' ').replace(/\b[a-z]/g,s=>s.toUpperCase());}
+    function dataColumns() {return D.budget_columns || Object.keys((D.budget||[])[0]||{});}
+    function bestBudgetColumns() {
+      const keys=dataColumns();const rows=D.budget||[];
+      const nums=keys.filter(k=>rows.filter(r=>r[k]!=null && Number.isFinite(Number(r[k]))).length>=Math.max(2,rows.length/2));
+      const weigh=(k,rewards)=>rewards.reduce((score,[regex,v])=>score+(regex.test(k)?v:0),0);
+      const budget=nums.filter(k=>/budget|^B$|limit/i.test(k)).sort((a,b)=>weigh(b,[[/budget/i,20],[/bike/i,5],[/limit/i,4],[/^B$/i,8]])-weigh(a,[[/budget/i,20],[/bike/i,5],[/limit/i,4],[/^B$/i,8]]))[0];
+      const metric=nums.filter(k=>k!==budget && /fail|unmet|blocked|objective|cost|penalty|loss/i.test(k)).sort((a,b)=>weigh(b,[[/total.*fail|fail.*total/i,40],[/service.*fail|fail.*service/i,35],[/unmet/i,23],[/blocked/i,20],[/objective/i,17],[/cost|penalty|loss/i,15]])-weigh(a,[[/total.*fail|fail.*total/i,40],[/service.*fail|fail.*service/i,35],[/unmet/i,23],[/blocked/i,20],[/objective/i,17],[/cost|penalty|loss/i,15]]))[0];
+      return {budget,metric};
+    }
+    function drawBudget() {
+      const records=D.budget||[],keys=dataColumns();
+      if(!records.length){$('cb-budget-chart').innerHTML='<div class="cb-empty">No saved budget scenarios.</div>';$('cb-budget-table').textContent='';return;}
+      const {budget,metric}=bestBudgetColumns();
+      if(!budget||!metric){$('cb-budget-chart').innerHTML='<div class="cb-empty">Budget metric columns could not be identified; raw scenarios are shown at right.</div>';} else {
+        const values=records.filter(r=>Number.isFinite(Number(r[budget]))&&Number.isFinite(Number(r[metric]))).map(r=>({x:Number(r[budget]),y:Number(r[metric])})).sort((a,b)=>a.x-b.x);
+        if(values.length>1){
+          const xs=values.map(p=>p.x),ys=values.map(p=>p.y),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+          const w=720,h=232,left=57,right=18,top=17,bottom=43,xx=x=>left+(x-xmin)/(xmax-xmin||1)*(w-left-right),yy=y=>top+(ymax-y)/(ymax-ymin||1)*(h-top-bottom);
+          const poly=values.map(p=>`${xx(p.x).toFixed(2)},${yy(p.y).toFixed(2)}`).join(' ');
+          const axis=Array.from({length:4},(_,i)=>{const f=i/3,y=top+f*(h-top-bottom);return `<line x1="${left}" y1="${y}" x2="${w-right}" y2="${y}"></line><text x="${left-11}" y="${y+4}" text-anchor="end">${dec(ymax-f*(ymax-ymin),1)}</text>`}).join('');
+          $('cb-budget-chart').innerHTML=`<svg class="cb-budget-plot" viewBox="0 0 ${w} ${h}" role="img" aria-label="Budget sensitivity chart: ${safe(budget)} versus ${safe(metric)}">${axis}<polyline points="${poly}"></polyline>${values.map(p=>`<circle cx="${xx(p.x).toFixed(2)}" cy="${yy(p.y).toFixed(2)}" r="5"><title>${safe(readableColumn(budget))}: ${p.x} · ${safe(readableColumn(metric))}: ${p.y}</title></circle>`).join('')}<text x="${left}" y="${h-18}" text-anchor="middle">${dec(xmin,1)}</text><text x="${w-right}" y="${h-18}" text-anchor="middle">${dec(xmax,1)}</text><text x="${w/2}" y="${h-3}" text-anchor="middle">${safe(readableColumn(budget))}</text></svg>`;
+        } else $('cb-budget-chart').innerHTML='<div class="cb-empty">Insufficient numeric values to plot.</div>';
+      }
+      const show=[budget,metric,...keys.filter(k=>k!==budget&&k!==metric)].filter(Boolean).slice(0,5);
+      $('cb-budget-table').innerHTML=`<table class="cb-table"><thead><tr>${show.map(k=>`<th>${safe(readableColumn(k))}</th>`).join('')}</tr></thead><tbody>${records.map(r=>`<tr>${show.map(k=>`<td>${safe(r[k] == null ? '—' : r[k])}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      $('cb-budget-info').textContent=budget&&metric?`X: ${readableColumn(budget)} · Y: ${readableColumn(metric)} · ${records.length} saved scenarios. These budget points do not change the station map.`:`${records.length} saved scenarios, with original field names shown at right.`;
+    }
+    function exportCSV() {
+      const fields=['policy_label','time_label','ZIP_CODE','short_name','station_name','capacity','start_inventory','inventory_after_rebalancing','end_inventory','requested_station_events','served_station_events','unmet_departures','blocked_arrivals','station_event_failures'];
+      const vals=policyRows();
+      const quoted=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+      const csv=[fields.join(','),...vals.map(r=>fields.map(f=>quoted(r[f])).join(','))].join('\r\n');
+      const blob=new Blob(['\ufeff',csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download=`capital_bikeshare_${S.policy}_${S.time==='all'?'all_intervals':'interval'}.csv`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }
+    function updateAll() {drawMap();drawKpis();drawPolicyChart();drawTimeTrend();drawStationTable();drawTransferTable();}
+    function wireControls() {
+      $('cb-time-choice').innerHTML=`<option value="all">All modeled intervals</option>`+times.map(t=>`<option value="${safe(t.time_key)}">${safe(t.time_label)}</option>`).join('');
+      $('cb-time-choice').value=S.time;
+      document.querySelectorAll('input[name="cb-policy"]').forEach(input=>{input.checked=input.value===S.policy;input.addEventListener('change',()=>{if(input.checked){S.policy=input.value;updateAll();}});});
+      $('cb-time-choice').addEventListener('change',e=>{S.time=e.target.value;updateAll();});
+      $('cb-state-choice').addEventListener('change',e=>{S.snapshot=e.target.value;updateAll();});
+      $('cb-map-metric').addEventListener('change',e=>{S.metric=e.target.value;updateAll();});
+      $('cb-show-zips').addEventListener('change',e=>{S.showZips=e.target.checked;drawMap();});
+      $('cb-show-transfers').addEventListener('change',e=>{S.showTransfers=e.target.checked;drawMap();});
+      $('cb-zip-search').addEventListener('input',drawZipPicker);
+      $('cb-zip-all').addEventListener('click',()=>{S.zips=new Set(zips);drawZipPicker();updateAll();});
+      $('cb-zip-none').addEventListener('click',()=>{S.zips.clear();drawZipPicker();updateAll();});
+      $('cb-zoom').addEventListener('click',zoomSelection);
+      $('cb-export').addEventListener('click',exportCSV);
+      $('cb-reset').addEventListener('click',()=>{S.policy='lp';S.time=defaultTime;S.zips=new Set(zips);S.snapshot='inventory_after_rebalancing';S.metric='fill';S.showZips=true;S.showTransfers=true;$('cb-zip-search').value='';$('cb-time-choice').value=S.time;$('cb-state-choice').value=S.snapshot;$('cb-map-metric').value=S.metric;$('cb-show-zips').checked=true;$('cb-show-transfers').checked=true;document.querySelectorAll('input[name="cb-policy"]').forEach(i=>i.checked=i.value===S.policy);drawZipPicker();updateAll();zoomSelection();});
+    }
+        // Guided tour and route inspection: presentation only.
+    const tourApp = $('cb-app');
+    let focusedRoute = null;
+    let focusRenderer = null;
+    let savedTourView = null;
+
+    function validTourTransfer(tr) {
+      return num(tr.bikes) > 0 &&
+        [tr.from_lat, tr.from_lon, tr.to_lat, tr.to_lon].every(
+          v => v !== null && v !== '' && Number.isFinite(Number(v))
+        );
+    }
+
+    function clearTourRoute() {
+      if (focusedRoute) {
+        focusedRoute.eachLayer(layer => {
+          if (layer.closePopup) layer.closePopup();
+        });
+        focusedRoute.remove();
+        focusedRoute = null;
+      }
+    }
+
+    function syncTourControls() {
+      document.querySelectorAll('input[name="cb-policy"]').forEach(input => {
+        input.checked = input.value === S.policy;
+      });
+
+      $('cb-state-choice').value = S.snapshot;
+      $('cb-map-metric').value = S.metric;
+      $('cb-show-zips').checked = S.showZips;
+      $('cb-show-transfers').checked = S.showTransfers;
+      $('cb-time-choice').value = S.time;
+
+      drawZipPicker();
+
+      // Existing listeners update the map, KPIs and hourly slider together.
+      $('cb-time-choice').dispatchEvent(
+        new Event('change', {bubbles: true})
+      );
+    }
+
+    function focusTourTransfer(tr, scrollToMap = false) {
+      if (!map || !tr || !validTourTransfer(tr)) return false;
+
+      S.policy = tr.policy_key;
+      S.time = tr.time_key;
+      S.showTransfers = true;
+
+      for (const zip of [tr.from_zip, tr.to_zip]) {
+        if (zip != null && zips.includes(String(zip))) {
+          S.zips.add(String(zip));
+        }
+      }
+
+      syncTourControls();
+      clearTourRoute();
+
+      if (!map.getPane('cb-route-inspection')) {
+        map.createPane('cb-route-inspection').style.zIndex = '625';
+      }
+
+      if (!focusRenderer) {
+        focusRenderer = L.svg({pane: 'cb-route-inspection'});
+      }
+
+      focusedRoute = L.featureGroup().addTo(map);
+
+      const a = [Number(tr.from_lat), Number(tr.from_lon)];
+      const b = [Number(tr.to_lat), Number(tr.to_lon)];
+      const origin = tr.from_station || tr.from_short_name;
+      const destination = tr.to_station || tr.to_short_name;
+      const interval =
+        times.find(t => t.time_key === tr.time_key)?.time_label ||
+        tr.time_label;
+
+      const style = {
+        renderer: focusRenderer,
+        pane: 'cb-route-inspection'
+      };
+
+      // White outline keeps the highlighted route visible on the basemap.
+      L.polyline([a, b], {
+        ...style,
+        color: '#fff',
+        weight: 10,
+        opacity: 1,
+        interactive: false
+      }).addTo(focusedRoute);
+
+      const line = L.polyline([a, b], {
+        ...style,
+        color: '#087eaa',
+        weight: 6,
+        opacity: 1
+      })
+        .bindPopup(
+          `<b>${safe(origin)} → ${safe(destination)}</b><br>` +
+          `${fmt(tr.bikes)} ${num(tr.bikes) === 1 ? 'bike' : 'bikes'} relocated · ` +
+          `${dec(tr.distance_km, 2)} km (straight-line)<br>` +
+          `${safe(interval)}<br>` +
+          '<small>Modeled operator relocation—not a customer trip or a truck road route.</small>',
+          {
+            maxWidth: 310,
+            autoPan: false
+          }
+        )
+        .addTo(focusedRoute);
+
+      L.circleMarker(a, {
+        ...style,
+        radius: 9,
+        color: '#fff',
+        weight: 2,
+        fillColor: '#1d4ed8',
+        fillOpacity: 1
+      })
+        .bindTooltip('A · FROM', {
+          permanent: true,
+          direction: 'left'
+        })
+        .bindPopup(`<b>FROM: ${safe(origin)}</b>`)
+        .addTo(focusedRoute);
+
+      L.circleMarker(b, {
+        ...style,
+        radius: 9,
+        color: '#fff',
+        weight: 2,
+        fillColor: '#047857',
+        fillOpacity: 1
+      })
+        .bindTooltip('B · TO', {
+          permanent: true,
+          direction: 'right'
+        })
+        .bindPopup(`<b>TO: ${safe(destination)}</b>`)
+        .addTo(focusedRoute);
+
+      map.invalidateSize({
+        animate: false,
+        pan: false
+      });
+
+      map.fitBounds(L.latLngBounds(a, b).pad(0.5), {
+        maxZoom: 16,
+        padding: [45, 65],
+        animate: false
+      });
+
+      line.openPopup();
+
+      if (scrollToMap) {
+        $('cb-map').scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+
+      return true;
+    }
+
+    // Keep the original drawing logic; remove stale highlights after filtering.
+    const originalDrawMap = drawMap;
+
+    drawMap = function () {
+      clearTourRoute();
+      originalDrawMap();
+    };
+
+    // Turn the existing transfer names into accessible map-location buttons.
+    const originalDrawTransferTable = drawTransferTable;
+
+    drawTransferTable = function () {
+      originalDrawTransferTable();
+
+      const routes = routeRows()
+        .sort((a, b) =>
+          num(b.bikes) - num(a.bikes) ||
+          num(b.bike_km) - num(a.bike_km)
+        )
+        .slice(0, 9);
+
+      const table = $('cb-transfer-table');
+      const heading = table.querySelector('th');
+
+      if (heading) {
+        heading.textContent = 'From → To · click to locate';
+      }
+
+      table.querySelectorAll('tbody tr').forEach((row, i) => {
+        const tr = routes[i];
+        if (!tr) return;
+
+        const cell = row.cells[0];
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.className = 'cb-route-link';
+        button.title = 'Show this modeled transfer on the map';
+        button.disabled = !map || !validTourTransfer(tr);
+
+        while (cell.firstChild) {
+          button.append(cell.firstChild);
+        }
+
+        cell.append(button);
+
+        const time = document.createElement('small');
+        time.className = 'cb-route-time';
+        time.textContent =
+          times.find(t => t.time_key === tr.time_key)?.time_label ||
+          tr.time_label;
+
+        cell.append(time);
+
+        button.addEventListener('click', () => {
+          focusTourTransfer(tr, true);
+        });
+      });
+    };
+
+    tourApp.addEventListener('cb-tour-show-transfer', () => {
+      if (savedTourView) return;
+
+      let candidates = routeRows('lp', S.time).filter(validTourTransfer);
+
+      if (!candidates.length) {
+        candidates = (D.transfers || []).filter(tr =>
+          tr.policy_key === 'lp' && validTourTransfer(tr)
+        );
+      }
+
+      const tr = candidates
+        .slice()
+        .sort((a, b) =>
+          num(b.bikes) - num(a.bikes) ||
+          num(a.distance_km) - num(b.distance_km)
+        )[0];
+
+      let detail = null;
+
+      if (map && tr) {
+        savedTourView = {
+          state: {...S, zips: new Set(S.zips)},
+          query: $('cb-zip-search').value,
+          slider: $('cb-hour-range')?.value,
+          center: map.getCenter(),
+          zoom: map.getZoom()
+        };
+
+        if (focusTourTransfer(tr)) {
+          detail = {
+            from: tr.from_station || tr.from_short_name,
+            to: tr.to_station || tr.to_short_name,
+            bikes: fmt(tr.bikes),
+            distance: dec(tr.distance_km, 2),
+            time:
+              times.find(t => t.time_key === tr.time_key)?.time_label ||
+              tr.time_label
+          };
+        }
+      }
+
+      tourApp.dispatchEvent(
+        new CustomEvent('cb-tour-example-ready', {detail})
+      );
+    });
+
+    tourApp.addEventListener('cb-tour-clear-transfer', () => {
+      if (!savedTourView) return;
+
+      const saved = savedTourView;
+      savedTourView = null;
+
+      clearTourRoute();
+
+      Object.assign(S, saved.state, {
+        zips: new Set(saved.state.zips)
+      });
+
+      $('cb-zip-search').value = saved.query;
+
+      // Restore the remembered slider position when returning to full-day mode.
+      if (
+        saved.state.time === 'all' &&
+        saved.slider != null &&
+        times[Number(saved.slider)]
+      ) {
+        S.time = times[Number(saved.slider)].time_key;
+        syncTourControls();
+        S.time = 'all';
+      }
+
+      syncTourControls();
+
+      map.setView(saved.center, saved.zoom, {
+        animate: false
+      });
+    });
+
+    countUpdate();wireControls();drawZipPicker();initMap();drawBudget();updateAll();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+```
+
+```{=html}
+<!--| quarto-html-table-processing: none -->
+<!-- cb-full-day-ui-v1 -->
+<style>
+#cb-app .cb-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  margin: 14px 0 22px;
+}
+#cb-app .cb-heading-main { width: 100%; }
+#cb-app .cb-title { text-align: center; }
+#cb-app .cb-instructions {
+  max-width: 850px;
+  margin: 14px auto 0 !important;
+  font-size: 14px;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+#cb-app .cb-top-right { text-align: center; white-space: normal; }
+#cb-app .cb-hour-nav { margin-top: 9px; }
+#cb-app .cb-hour-heading {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+}
+#cb-app .cb-hour-heading output { font-weight: 750; font-size: 14px; text-align: center; }
+#cb-app .cb-hour-nav button:disabled { opacity: .4; cursor: default; }
+#cb-app #cb-hour-range { width: 100%; margin: 13px 0 2px; accent-color: var(--cb-blue); cursor: pointer; }
+#cb-app .cb-hour-ticks { position: relative; height: 14px; font-size: 10px; color: var(--cb-sub); }
+#cb-app .cb-hour-ticks span { position: absolute; white-space: nowrap; }
+#cb-app .cb-hour-bottom { margin-top: 10px; }
+#cb-app .cb-hour-hint { font-size: 11px; color: var(--cb-sub); line-height: 1.45; margin-top: 8px; }
+#cb-app .cb-full-day-chart .cb-trend { min-width: 1200px; gap: 5px; }
+#cb-app .cb-full-day-chart .cb-time-group { min-width: 43px; gap: 2px; padding: 3px; }
+#cb-app .cb-full-day-chart .cb-time-label { font-size: 10px; }
+</style>
+<script>
+(function () {
+  'use strict';
+  function initTimeNavigation() {
+    const app = document.getElementById('cb-app');
+    const select = document.getElementById('cb-time-choice');
+    const dataNode = document.getElementById('cb-dashboard-json');
+    if (!app || !select || !dataNode || document.getElementById('cb-hour-range')) return;
+    let data;
+    try { data = JSON.parse(dataNode.textContent); } catch (error) { console.error(error); return; }
+    const times = (data.times || []).slice().sort((a, b) => a.time_key.localeCompare(b.time_key));
+    if (!times.length || !select.options.length) return;
+    const fullDay = times.length === 24;
+    const label = t => t.time_key.slice(11, 16) === '23:00' && fullDay ? '23:00–24:00' : t.time_label;
+    const summaryOption = [...select.options].find(o => o.value === 'all');
+    if (summaryOption && fullDay) summaryOption.textContent = 'Full day (00:00–24:00)';
+    for (const option of select.options) {
+      const time = times.find(t => t.time_key === option.value);
+      if (time) option.textContent = label(time);
+    }
+    const panel = document.createElement('div');
+    panel.className = 'cb-hour-nav';
+    panel.innerHTML = `
+      <div class="cb-hour-heading">
+        <button class="cb-button" type="button" id="cb-hour-prev" title="Previous hour" aria-label="Previous hour">&#8592;</button>
+        <output id="cb-hour-label" for="cb-hour-range" aria-live="polite"></output>
+        <button class="cb-button" type="button" id="cb-hour-next" title="Next hour" aria-label="Next hour">&#8594;</button>
+      </div>
+      <input id="cb-hour-range" type="range" min="0" max="${times.length - 1}" step="1" value="0" aria-label="Select a modeled hour">
+      <div id="cb-hour-ticks" class="cb-hour-ticks"></div>
+      <div class="cb-hour-bottom"><button class="cb-button" type="button" id="cb-hour-all">${fullDay ? 'View full day' : 'View all intervals'}</button></div>
+      <div class="cb-hour-hint" id="cb-hour-hint"></div>`;
+    select.after(panel);
+    const range = document.getElementById('cb-hour-range');
+    const output = document.getElementById('cb-hour-label');
+    const prev = document.getElementById('cb-hour-prev');
+    const next = document.getElementById('cb-hour-next');
+    const all = document.getElementById('cb-hour-all');
+    const hint = document.getElementById('cb-hour-hint');
+    const chart = document.getElementById('cb-time-chart');
+    const preferred = Math.max(0, times.findIndex(t => t.time_key.slice(11, 13) === '16'));
+    let lastHour = preferred;
+    const currentIndex = () => times.findIndex(t => t.time_key === select.value);
+    const tickIndexes = fullDay ? [0, 6, 12, 18, 23] : [...new Set([0, Math.round((times.length - 1) / 4),
+      Math.round((times.length - 1) / 2), Math.round(3 * (times.length - 1) / 4), times.length - 1])];
+    document.getElementById('cb-hour-ticks').textContent = '';
+    for (const i of tickIndexes) {
+      const tick = document.createElement('span'); tick.textContent = times[i].time_key.slice(11, 16);
+      tick.style.left = `${100 * i / Math.max(1, times.length - 1)}%`;
+      tick.style.transform = i === 0 ? 'none' : i === times.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
+      document.getElementById('cb-hour-ticks').append(tick);
+    }
+    function sync() {
+      const i = currentIndex(); const summary = i < 0;
+      if (!summary) lastHour = i;
+      range.value = String(lastHour);
+      range.setAttribute('aria-valuetext', label(times[lastHour]));
+      output.textContent = summary ? (fullDay ? '00:00–24:00 · totals' : 'All intervals') : label(times[i]);
+      prev.disabled = !summary && i === 0;
+      next.disabled = !summary && i === times.length - 1;
+      all.setAttribute('aria-pressed', String(summary));
+      hint.textContent = summary
+        ? 'Events are summed; inventory is the mean across intervals. Move the slider to inspect one hour.'
+        : 'Drag the slider or use the arrows to move one hour at a time.';
+      const meta = document.getElementById('cb-header-sub');
+      if (meta) meta.textContent = `${times[0].time_key.slice(0, 10)} · ${times.length} modeled hourly intervals`;
+      if (chart && fullDay) {
+        chart.classList.add('cb-full-day-chart');
+        chart.querySelectorAll('[data-time]').forEach(group => {
+          const text = group.querySelector('.cb-time-label');
+          if (text) text.textContent = group.dataset.time.slice(11, 16);
+        });
+      }
+    }
+    function choose(index) {
+      index = Math.max(0, Math.min(times.length - 1, index));
+      select.value = times[index].time_key;
+      select.dispatchEvent(new Event('change', {bubbles: true}));
+      sync();
+    }
+    range.addEventListener('input', () => choose(Number(range.value)));
+    prev.addEventListener('click', () => choose(currentIndex() < 0 ? times.length - 1 : currentIndex() - 1));
+    next.addEventListener('click', () => choose(currentIndex() < 0 ? 0 : currentIndex() + 1));
+    all.addEventListener('click', () => { select.value = 'all'; select.dispatchEvent(new Event('change', {bubbles: true})); sync(); });
+    app.addEventListener('change', sync);
+    app.addEventListener('click', sync);
+    document.getElementById('cb-reset')?.addEventListener('click', () => choose(preferred));
+    choose(preferred);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTimeNavigation);
+  else initTimeNavigation();
+})();
+</script>
+```
+
+```{=html}
+<!--| quarto-html-table-processing: none -->
+<!-- cb-guided-tour-inline-v2 -->
+
+<style>
+#cb-app .cb-tour-launch-row {
+  margin-top: 12px;
+  text-align: center;
+}
+
+#cb-app .cb-tour-launch {
+  background: #eaf6ff;
+  border-color: #b9d8eb;
+  color: #245476;
+  font-weight: 750;
+}
+
+#cb-app .cb-route-link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: #245b83;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.6;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#cb-app .cb-route-link:hover {
+  color: #087eaa;
+}
+
+#cb-app .cb-route-link:disabled {
+  cursor: default;
+  opacity: .6;
+}
+
+#cb-app .cb-route-link:focus-visible {
+  outline: 2px solid #087eaa;
+  outline-offset: 3px;
+}
+
+#cb-app .cb-route-time {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+#cb-tour-ui[hidden],
+#cb-tour-ui [hidden] {
+  display: none !important;
+}
+
+#cb-tour-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+#cb-tour-ui * {
+  box-sizing: border-box;
+}
+
+#cb-tour-ui .cb-tour-mask {
+  position: fixed;
+  background: rgba(6, 17, 32, .68);
+  pointer-events: auto;
+}
+
+#cb-tour-spot {
+  position: fixed;
+  border: 3px solid #84e3f2;
+  border-radius: 12px;
+  box-shadow: 0 0 0 3px rgba(59, 180, 207, .25);
+  pointer-events: none;
+}
+
+#cb-tour-card {
+  position: fixed;
+  width: min(370px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  pointer-events: auto;
+  background: #102236;
+  color: #eef6ff;
+  border: 1px solid #4b7187;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, .35);
+}
+
+#cb-tour-ui .cb-tour-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#cb-tour-count {
+  color: #80dced;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+#cb-tour-close {
+  width: 32px;
+  height: 32px;
+  background: #1b334a;
+  color: white;
+  border: 1px solid #3a5770;
+  border-radius: 8px;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+#cb-tour-title {
+  color: #fff;
+  border: 0;
+  margin: 12px 0 !important;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+#cb-tour-copy {
+  color: #d7e6f2;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 14px 0;
+}
+
+#cb-tour-note {
+  padding: 10px 12px;
+  margin: 12px 0;
+  color: #d5f7ff;
+  background: #1a3b50;
+  border-left: 3px solid #80dced;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#cb-tour-jump {
+  width: 100%;
+  background: #192f44;
+  color: #d7f2fa;
+  border: 1px solid #3b5970;
+  border-radius: 7px;
+  padding: 7px;
+  font-size: 12px;
+}
+
+#cb-tour-ui .cb-tour-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+#cb-tour-ui .cb-tour-actions button {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #46647c;
+  border-radius: 9px;
+  background: #20374d;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#cb-tour-ui #cb-tour-next {
+  background: #28677e;
+  border-color: #57a1b6;
+}
+
+#cb-tour-ui button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+#cb-tour-skip {
+  margin-top: 12px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: #b7d2e2;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#cb-tour-ui button:focus-visible,
+#cb-tour-ui select:focus-visible {
+  outline: 3px solid #9ce9f3;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  #cb-tour-card {
+    padding: 17px;
+    width: min(340px, calc(100vw - 24px));
+  }
+
+  #cb-tour-title {
+    font-size: 19px;
+  }
+
+  #cb-tour-copy {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+@media print {
+  #cb-tour-ui,
+  .cb-tour-launch-row {
+    display: none !important;
+  }
+}
+</style>
+
+<div id="cb-tour-ui" hidden>
+  <div class="cb-tour-mask" data-mask="top"></div>
+  <div class="cb-tour-mask" data-mask="left"></div>
+  <div class="cb-tour-mask" data-mask="right"></div>
+  <div class="cb-tour-mask" data-mask="bottom"></div>
+
+  <div id="cb-tour-spot" hidden></div>
+
+  <section
+    id="cb-tour-card"
+    role="dialog"
+    aria-modal="false"
+    aria-labelledby="cb-tour-title"
+    aria-describedby="cb-tour-copy"
+    tabindex="-1"
+  >
+    <div class="cb-tour-head">
+      <span id="cb-tour-count" aria-live="polite"></span>
+
+      <button
+        id="cb-tour-close"
+        type="button"
+        aria-label="Close tour"
+      >×</button>
+    </div>
+
+    <h2 id="cb-tour-title"></h2>
+
+    <select
+      id="cb-tour-jump"
+      aria-label="Tour contents"
+    ></select>
+
+    <p id="cb-tour-copy"></p>
+
+    <div id="cb-tour-note" hidden></div>
+
+    <div class="cb-tour-actions">
+      <button id="cb-tour-back" type="button">Previous</button>
+      <button id="cb-tour-next" type="button">Next →</button>
+    </div>
+
+    <button id="cb-tour-skip" type="button">
+      Skip tour — explore on my own
+    </button>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function initGuidedTour() {
+    const $ = id => document.getElementById(id);
+
+    const app = $('cb-app');
+    const root = $('cb-tour-ui');
+    const card = $('cb-tour-card');
+    const spot = $('cb-tour-spot');
+
+    if (!app || !root || !card || $('cb-tour-launch')) return;
+
+    // Attach the overlay outside Quarto's content layout.
+    document.body.append(root);
+
+    const group = id => $(id)?.closest('.cb-group');
+    const section = id => $(id)?.closest('.cb-detail-panel');
+
+    const steps = [
+      {
+        title: 'Welcome to the scenario explorer',
+        target: () => null,
+        copy:
+          'Explore how rebalancing changes bike availability and service outcomes ' +
+          'over a modeled day. This tour explains the controls and how to read ' +
+          'station-to-station transfers. These are simulations, not live operations.'
+      },
+      {
+        title: 'Compare three policies',
+        target: () => group('cb-policy-choice'),
+        copy:
+          'No rebalancing leaves bikes where customer trips take them. ' +
+          'Reactive heuristic follows inventory rules. LP optimization plans ' +
+          'transfers using the full day’s known scenario demand, service penalties ' +
+          'and relocation costs.'
+      },
+      {
+        title: 'Choose an hour',
+        target: () => group('cb-time-choice'),
+        copy:
+          'Use the dropdown, slider or arrows to move through the day. ' +
+          'View full day sums service events across hours; inventory is displayed ' +
+          'as an hourly mean, not a daily total.'
+      },
+      {
+        title: 'Focus on ZIP areas',
+        target: () => group('cb-zip-search'),
+        copy:
+          'Tick ZIP codes, search for a code, or click a ZIP outline on the map. ' +
+          'All restores the full geographic selection. A transfer is included ' +
+          'when either endpoint lies in the selected area.'
+      },
+      {
+        title: 'Read station dots',
+        target: () => $('cb-map'),
+        copy:
+          'Click a station dot to see capacity, inventory and service results. ' +
+          'Inventory Snapshot selects before rebalancing, after rebalancing or ' +
+          'the end of the hour. Map Color switches between inventory fill and ' +
+          'failure counts.'
+      },
+      {
+        title: 'Understand bike transfers',
+        transfer: true,
+        target: () => $('cb-map'),
+        copy:
+          'The example highlights an existing LP transfer: A / FROM is the origin ' +
+          'and B / TO is the destination. The popup reports bikes moved, ' +
+          'straight-line distance and time. These lines represent modeled ' +
+          'physical relocation—not customer rides or actual truck routes.'
+      },
+      {
+        title: 'Check performance',
+        target: () => app.querySelector('.cb-kpi-grid'),
+        copy:
+          'The cards show requested station events, service success, unmet ' +
+          'departures, blocked arrivals and relocation effort. Bike-km means ' +
+          'bikes moved multiplied by distance; it is not truck driving distance. ' +
+          'Values follow the selected policy, hour and ZIP areas.'
+      },
+      {
+        title: 'Inspect the detailed results',
+        target: () => section('cb-transfer-table'),
+        copy:
+          'Click a station pair in Major Relocation Corridors to zoom to that ' +
+          'transfer and its hour. Nearby panels compare policies, hours and ' +
+          'station pressure. Budget Sensitivity shows separate precomputed ' +
+          'scenarios; it does not change the map.'
+      }
+    ];
+
+    // Add a permanent replay button below the centered heading.
+    const launchRow = document.createElement('div');
+    launchRow.className = 'cb-tour-launch-row';
+
+    const launch = document.createElement('button');
+    launch.id = 'cb-tour-launch';
+    launch.type = 'button';
+    launch.className = 'cb-button cb-tour-launch';
+    launch.textContent = 'Quick tour';
+
+    launchRow.append(launch);
+    app.querySelector('.cb-top').append(launchRow);
+
+    // A small contents menu lets readers jump directly to any step.
+    steps.forEach((step, i) => {
+      const option = document.createElement('option');
+      option.value = String(i);
+      option.textContent = `${i + 1}. ${step.title}`;
+      $('cb-tour-jump').append(option);
+    });
+
+    const masks = Object.fromEntries(
+      [...root.querySelectorAll('[data-mask]')].map(node => [
+        node.dataset.mask,
+        node
+      ])
+    );
+
+    const storageKey = 'capital-bikeshare-guided-tour-v2';
+
+    let active = false;
+    let index = 0;
+    let previousFocus = null;
+    let frame = null;
+
+    const clamp = (value, low, high) =>
+      Math.max(low, Math.min(high, value));
+
+    function rect(node, x, y, width, height) {
+      Object.assign(node.style, {
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${Math.max(0, width)}px`,
+        height: `${Math.max(0, height)}px`
+      });
+    }
+
+    function seen() {
+      try {
+        return localStorage.getItem(storageKey) === '1';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function position() {
+      if (!active) return;
+
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const w = card.offsetWidth;
+      const h = card.offsetHeight;
+      const target = steps[index].target();
+
+      rect(masks.top, 0, 0, width, height);
+
+      for (const key of ['left', 'right', 'bottom']) {
+        rect(masks[key], 0, 0, 0, 0);
+      }
+
+      spot.hidden = true;
+
+      let x = (width - w) / 2;
+      let y = (height - h) / 2;
+
+      if (target) {
+        const b = target.getBoundingClientRect();
+
+        const r = {
+          left: clamp(b.left - 6, 4, width - 4),
+          right: clamp(b.right + 6, 4, width - 4),
+          top: clamp(b.top - 6, 4, height - 4),
+          bottom: clamp(b.bottom + 6, 4, height - 4)
+        };
+
+        if (r.right > r.left + 2 && r.bottom > r.top + 2) {
+          spot.hidden = false;
+
+          rect(
+            spot,
+            r.left,
+            r.top,
+            r.right - r.left,
+            r.bottom - r.top
+          );
+
+          rect(masks.top, 0, 0, width, r.top);
+          rect(masks.left, 0, r.top, r.left, r.bottom - r.top);
+          rect(
+            masks.right,
+            r.right,
+            r.top,
+            width - r.right,
+            r.bottom - r.top
+          );
+          rect(masks.bottom, 0, r.bottom, width, height - r.bottom);
+
+          if (width - r.right > w + 28) {
+            x = r.right + 14;
+            y = r.top;
+          } else if (r.left > w + 28) {
+            x = r.left - w - 14;
+            y = r.top;
+          } else if (height - r.bottom > h + 28) {
+            x = r.left;
+            y = r.bottom + 14;
+          } else if (r.top > h + 28) {
+            x = r.left;
+            y = r.top - h - 14;
+          } else {
+            x = width - w - 12;
+            y = height - h - 12;
+          }
+        }
+      }
+
+      card.style.left = `${clamp(x, 12, width - w - 12)}px`;
+      card.style.top = `${clamp(y, 12, height - h - 12)}px`;
+    }
+
+    function positionSoon() {
+      if (!active || frame !== null) return;
+
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        position();
+      });
+    }
+
+    function show(nextIndex) {
+      // Leaving the transfer demonstration restores the previous selection.
+      if (steps[index].transfer) {
+        app.dispatchEvent(new Event('cb-tour-clear-transfer'));
+      }
+
+      index = clamp(nextIndex, 0, steps.length - 1);
+      const step = steps[index];
+
+      $('cb-tour-count').textContent = `${index + 1} / ${steps.length}`;
+      $('cb-tour-title').textContent = step.title;
+      $('cb-tour-copy').textContent = step.copy;
+      $('cb-tour-jump').value = String(index);
+      $('cb-tour-back').disabled = index === 0;
+
+      $('cb-tour-next').textContent =
+        index === steps.length - 1 ? 'Finish ✓' : 'Next →';
+
+      $('cb-tour-note').hidden = true;
+      $('cb-tour-note').textContent = '';
+
+      const target = step.target();
+
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'instant',
+          block: 'center'
+        });
+      }
+
+      if (step.transfer) {
+        app.dispatchEvent(new Event('cb-tour-show-transfer'));
+      }
+
+      position();
+      $('cb-tour-next').focus({preventScroll: true});
+      positionSoon();
+    }
+
+    function open() {
+      if (active) return;
+
+      previousFocus = document.activeElement;
+      active = true;
+      index = 0;
+      root.hidden = false;
+
+      show(0);
+    }
+
+    function close() {
+      if (!active) return;
+
+      if (steps[index].transfer) {
+        app.dispatchEvent(new Event('cb-tour-clear-transfer'));
+      }
+
+      active = false;
+      root.hidden = true;
+
+      try {
+        localStorage.setItem(storageKey, '1');
+      } catch (_) {
+        // Some browsers restrict storage when opening local HTML files.
+      }
+
+      const focus =
+        previousFocus && previousFocus !== document.body
+          ? previousFocus
+          : launch;
+
+      focus?.focus({preventScroll: true});
+    }
+
+    launch.addEventListener('click', open);
+
+    // Choosing a real route exits the tour so the map is unobstructed.
+    app.addEventListener('click', event => {
+      if (active && event.target.closest('.cb-route-link')) {
+        close();
+      }
+    });
+
+    $('cb-tour-close').addEventListener('click', close);
+    $('cb-tour-skip').addEventListener('click', close);
+
+    $('cb-tour-back').addEventListener('click', () => {
+      show(index - 1);
+    });
+
+    $('cb-tour-next').addEventListener('click', () => {
+      if (index === steps.length - 1) {
+        close();
+      } else {
+        show(index + 1);
+      }
+    });
+
+    $('cb-tour-jump').addEventListener('change', event => {
+      show(Number(event.target.value));
+    });
+
+    app.addEventListener('cb-tour-example-ready', event => {
+      if (!active || !steps[index].transfer) return;
+
+      const d = event.detail;
+
+      $('cb-tour-note').textContent = d
+        ? `Saved example: ${d.from} → ${d.to}. ` +
+          `${d.bikes} bike(s), ${d.distance} km, ${d.time}. ` +
+          'The tour temporarily selects this LP hour; leaving this step ' +
+          'restores your previous filters and map view.'
+        : 'No positive LP transfer is available, or the map has not loaded. ' +
+          'No example data have been invented.';
+
+      $('cb-tour-note').hidden = false;
+      positionSoon();
+    });
+
+    window.addEventListener('resize', positionSoon, {
+      passive: true
+    });
+
+    window.addEventListener('scroll', positionSoon, {
+      passive: true,
+      capture: true
+    });
+
+    document.addEventListener('keydown', event => {
+      if (!active) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+        return;
+      }
+
+      // Do not steal arrow keys from the map, slider or dropdowns.
+      if (
+        !card.contains(event.target) ||
+        ['INPUT', 'SELECT'].includes(event.target.tagName)
+      ) {
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+
+        if (index === steps.length - 1) {
+          close();
+        } else {
+          show(index + 1);
+        }
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        show(index - 1);
+      }
+    });
+
+    // Show automatically on the first visit; the replay button remains available.
+    if (
+      !seen() ||
+      new URLSearchParams(location.search).get('tour') === '1'
+    ) {
+      requestAnimationFrame(() => requestAnimationFrame(open));
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGuidedTour);
+  } else {
+    initGuidedTour();
+  }
+})();
+</script>
+```
+
+```{=html}
+<!--| quarto-html-table-processing: none -->
+<!-- Guided tour: light theme, without the step-selection dropdown. -->
+
+<style id="cb-tour-light-theme">
+/* Hide the step selector without breaking existing JavaScript references. */
+#cb-tour-ui #cb-tour-jump {
+  display: none !important;
+}
+
+/* Dim the page behind the tour. */
+#cb-tour-ui .cb-tour-mask {
+  background: rgba(15, 23, 42, 0.42);
+}
+
+/* Highlight the control or panel being explained. */
+#cb-tour-ui #cb-tour-spot {
+  border-color: #0d9488;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.95),
+    0 0 0 6px rgba(13, 148, 136, 0.22);
+}
+
+/* Main introduction card. */
+#cb-tour-ui #cb-tour-card {
+  background: #ffffff;
+  color: #172337;
+  border: 1px solid #cbd5e1;
+  box-shadow:
+    0 20px 60px rgba(15, 23, 42, 0.22),
+    0 4px 14px rgba(15, 23, 42, 0.10);
+  color-scheme: light;
+}
+
+/* Step counter, heading and explanatory text. */
+#cb-tour-ui #cb-tour-count {
+  color: #0f766e;
+}
+
+#cb-tour-ui #cb-tour-title {
+  color: #172337;
+}
+
+#cb-tour-ui #cb-tour-copy {
+  color: #475569;
+}
+
+/* Highlighted transfer-example explanation. */
+#cb-tour-ui #cb-tour-note {
+  background: #f0fdfa;
+  color: #115e59;
+  border-left-color: #0d9488;
+}
+
+/* Close button. */
+#cb-tour-ui #cb-tour-close {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #d5dee8;
+}
+
+#cb-tour-ui #cb-tour-close:hover {
+  background: #e2e8f0;
+  color: #172337;
+}
+
+/* Previous button and shared navigation styling. */
+#cb-tour-ui .cb-tour-actions button {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+#cb-tour-ui .cb-tour-actions button:not(:disabled):hover {
+  background: #eaf0f5;
+  border-color: #94a3b8;
+}
+
+/* Next / Finish button. */
+#cb-tour-ui #cb-tour-next {
+  background: #0f766e;
+  color: #ffffff;
+  border-color: #0f766e;
+}
+
+#cb-tour-ui #cb-tour-next:not(:disabled):hover {
+  background: #115e59;
+  border-color: #115e59;
+}
+
+#cb-tour-ui .cb-tour-actions button:disabled {
+  opacity: 0.40;
+}
+
+/* Skip link. */
+#cb-tour-ui #cb-tour-skip {
+  color: #64748b;
+}
+
+#cb-tour-ui #cb-tour-skip:hover {
+  color: #0f766e;
+}
+
+/* Keyboard focus indicator. */
+#cb-tour-ui button:focus-visible {
+  outline: 3px solid #0d9488;
+  outline-offset: 3px;
+}
+
+/* Permanent Quick tour button below the dashboard heading. */
+#cb-app .cb-tour-launch {
+  background: #f0fdfa;
+  color: #0f766e;
+  border-color: #99d9d0;
+}
+
+#cb-app .cb-tour-launch:hover {
+  background: #ccfbf1;
+  border-color: #0d9488;
+}
+
+#cb-app .cb-tour-launch:focus-visible {
+  outline: 3px solid #0d9488;
+  outline-offset: 3px;
+}
+</style>
+```
